@@ -30,9 +30,7 @@ const SocialPage: React.FC = () => {
     <View className={styles.container}>
       <View className={styles.sectionHeader}>
         <Text className={styles.sectionTitle}>🎾 我的球友</Text>
-        <View className={styles.addBtn} onClick={handleAddPlayer}>
-          <Text className={styles.addBtnText}>+ 添加</Text>
-        </View>
+        <Text className={styles.addBtn} onClick={handleAddPlayer}>+ 添加</Text>
       </View>
 
       {players.length > 0 ? (

@@ -149,9 +149,7 @@ const PlayerAddPage: React.FC = () => {
         </View>
       </View>
 
-      <View className={styles.submitBtn} onClick={handleSave}>
-        <Text className={styles.submitText}>保存球友</Text>
-      </View>
+      <Text className={styles.submitBtn} onClick={handleSave}>保存球友</Text>
     </View>
   );
 };

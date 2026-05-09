@@ -16,16 +16,10 @@
 }
 
 .addBtn {
+  display: block;
   padding: 8rpx 24rpx;
   border-radius: $radius-round;
   background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
-
-  &:active {
-    opacity: 0.9;
-  }
-}
-
-.addBtnText {
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;
   color: $color-text-white;
