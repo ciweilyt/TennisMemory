@@ -1,0 +1,218 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  padding: 0 $page-padding;
+  padding-bottom: 120rpx;
+  background: $color-bg-page;
+}
+
+.eloSection {
+  margin: $spacing-lg 0;
+}
+
+.eloCard {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%);
+  border-radius: $radius-lg;
+  padding: $spacing-xl $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.eloHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-lg;
+}
+
+.eloLabel {
+  font-size: $font-size-md;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.eloTrend {
+  font-size: $font-size-sm;
+  color: $color-accent;
+  font-weight: $font-weight-medium;
+}
+
+.eloValue {
+  font-size: 72rpx;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+  margin-bottom: $spacing-sm;
+}
+
+.eloLevel {
+  font-size: $font-size-md;
+  color: $color-accent;
+  font-weight: $font-weight-medium;
+  margin-bottom: $spacing-lg;
+}
+
+.eloBar {
+  height: 8rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: $radius-round;
+  overflow: hidden;
+}
+
+.eloBarFill {
+  height: 100%;
+  background: $color-accent;
+  border-radius: $radius-round;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  margin-top: $spacing-lg;
+}
+
+.statsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+.statsGridItem {
+  width: calc(50% - #{$spacing-md} / 2);
+}
+
+.courtSection {
+  margin-bottom: $spacing-lg;
+}
+
+.courtCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  margin-bottom: $spacing-md;
+}
+
+.courtRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-md;
+}
+
+.courtName {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.courtWinRate {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+}
+
+.courtBar {
+  height: 12rpx;
+  background: $color-bg-page;
+  border-radius: $radius-round;
+  overflow: hidden;
+}
+
+.courtBarFill {
+  height: 100%;
+  border-radius: $radius-round;
+}
+
+.courtBarHard {
+  background: $color-tag-hard;
+}
+
+.courtBarClay {
+  background: $color-tag-clay;
+}
+
+.courtBarGrass {
+  background: $color-tag-grass;
+}
+
+.typeSection {
+  margin-bottom: $spacing-lg;
+}
+
+.typeCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  display: flex;
+  gap: $spacing-lg;
+}
+
+.typeItem {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.typeLabel {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-sm;
+}
+
+.typeValue {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+}
+
+.typeSub {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.insightSection {
+  margin-bottom: $spacing-lg;
+}
+
+.insightCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  margin-bottom: $spacing-md;
+  border-left: 6rpx solid;
+}
+
+.insightWarning {
+  border-left-color: $color-warning;
+}
+
+.insightTrend {
+  border-left-color: $color-primary;
+}
+
+.insightPraise {
+  border-left-color: $color-success;
+}
+
+.insightSuggestion {
+  border-left-color: $color-info;
+}
+
+.insightTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.insightDesc {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-loose;
+}

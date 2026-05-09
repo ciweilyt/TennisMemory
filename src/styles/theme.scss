@@ -1,0 +1,39 @@
+// ============================================
+// 主题配色变量
+// ============================================
+
+$color-primary: #1A6B4C;
+$color-primary-light: #2D9B72;
+$color-primary-dark: #0D4D34;
+
+$color-accent: #D4F34A;
+$color-accent-light: #E8F77A;
+
+$color-success: #00B42A;
+$color-warning: #FF7D00;
+$color-error: #F53F3F;
+$color-info: #165dff;
+
+$color-bg-page: #F5F7F5;
+$color-bg-card: #FFFFFF;
+$color-bg-hover: #F0F4F0;
+$color-bg-primary: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+$color-bg-accent: linear-gradient(135deg, $color-accent 0%, $color-accent-light 100%);
+
+$color-text-primary: #1D2129;
+$color-text-secondary: #4E5969;
+$color-text-tertiary: #86909C;
+$color-text-disabled: #C9CDD4;
+$color-text-white: #FFFFFF;
+
+$color-border: #E5E6EB;
+$color-divider: #F2F3F5;
+
+$color-win: #00B42A;
+$color-lose: #F53F3F;
+
+$color-tag-hard: #5B8DEF;
+$color-tag-clay: #E8704A;
+$color-tag-grass: #52C41A;
+$color-tag-singles: #7B61FF;
+$color-tag-doubles: #F7BA1E;

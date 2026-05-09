@@ -1,0 +1,71 @@
+@use '@/styles/variables.scss' as *;
+
+.bubbleWrap {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: $spacing-md;
+}
+
+.userWrap {
+  flex-direction: row-reverse;
+}
+
+.aiWrap {
+  flex-direction: row;
+}
+
+.aiAvatar {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: $radius-round;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: $spacing-sm;
+  flex-shrink: 0;
+}
+
+.aiAvatarText {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-text-white;
+}
+
+.bubble {
+  max-width: 500rpx;
+  padding: $spacing-md $spacing-lg;
+  border-radius: $radius-lg;
+  word-break: break-all;
+}
+
+.userBubble {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  border-top-right-radius: $radius-xs;
+}
+
+.aiBubble {
+  background: $color-bg-card;
+  border-top-left-radius: $radius-xs;
+  box-shadow: $shadow-card;
+}
+
+.content {
+  font-size: $font-size-md;
+  line-height: $line-height-loose;
+}
+
+.userContent {
+  color: $color-text-white;
+}
+
+.aiContent {
+  color: $color-text-primary;
+}
+
+.time {
+  font-size: $font-size-xs;
+  color: $color-text-disabled;
+  margin-top: 4rpx;
+  align-self: flex-end;
+}
