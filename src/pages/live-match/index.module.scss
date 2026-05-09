@@ -1,0 +1,485 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background: $color-bg-page;
+}
+
+.header {
+  padding: $spacing-lg $page-padding;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+}
+
+.title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+}
+
+.setupArea {
+  padding: $spacing-lg $page-padding;
+  padding-bottom: 200rpx;
+}
+
+.setupCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  margin-bottom: $spacing-lg;
+}
+
+.setupTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-lg;
+}
+
+.formGroup {
+  margin-bottom: $spacing-lg;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.formLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-sm;
+  display: block;
+}
+
+.formInput {
+  width: 100%;
+  height: 80rpx;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  padding: 0 $spacing-lg;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  box-sizing: border-box;
+}
+
+.inputWithAction {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.pickBtn {
+  flex-shrink: 0;
+  padding: 16rpx 24rpx;
+  border-radius: $radius-md;
+  background: rgba($color-primary, 0.1);
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
+.pickerValue {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 80rpx;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  padding: 0 $spacing-lg;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+}
+
+.pickerArrow {
+  font-size: $font-size-lg;
+  color: $color-text-disabled;
+}
+
+.startBtn {
+  width: 100% !important;
+  height: $button-height-lg !important;
+  line-height: $button-height-lg !important;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%) !important;
+  border-radius: $radius-button !important;
+  font-size: $font-size-lg !important;
+  font-weight: $font-weight-semibold !important;
+  color: $color-text-white !important;
+  border: none !important;
+  padding: 0 !important;
+
+  &::after {
+    border: none !important;
+  }
+}
+
+.playArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: $spacing-md $page-padding;
+  padding-bottom: 60rpx;
+}
+
+.matchInfo {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-md $spacing-lg;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.matchInfoText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+}
+
+.scoreBoard {
+  width: 100%;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  margin-bottom: $spacing-lg;
+}
+
+.setsRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-sm;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.setsLabel {
+  width: 100rpx;
+  font-size: $font-size-xs;
+  color: $color-text-disabled;
+}
+
+.setsLabelMe {
+  width: 100rpx;
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+}
+
+.setsLabelOpp {
+  width: 100rpx;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+}
+
+.setNum {
+  flex: 1;
+  text-align: center;
+  font-size: $font-size-xs;
+  color: $color-text-disabled;
+}
+
+.setScore {
+  flex: 1;
+  text-align: center;
+  font-size: $font-size-lg;
+  color: $color-text-tertiary;
+  font-weight: $font-weight-medium;
+}
+
+.setScoreActive {
+  flex: 1;
+  text-align: center;
+  font-size: $font-size-lg;
+  color: $color-text-primary;
+  font-weight: $font-weight-bold;
+}
+
+.currentGame {
+  width: 100%;
+  background: rgba($color-primary, 0.06);
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gameLabel {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+  margin-bottom: $spacing-sm;
+}
+
+.gameScore {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.gameScoreNum {
+  font-size: 56rpx;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+}
+
+.gameScoreDash {
+  font-size: 40rpx;
+  color: $color-text-disabled;
+}
+
+.pointBoard {
+  width: 100%;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+  box-shadow: $shadow-card;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pointLabel {
+  font-size: $font-size-xs;
+  color: $color-accent;
+  font-weight: $font-weight-semibold;
+  letter-spacing: 4rpx;
+  margin-bottom: $spacing-sm;
+}
+
+.pointDisplay {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.pointNum {
+  font-size: 72rpx;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+}
+
+.pointDash {
+  font-size: 48rpx;
+  color: $color-text-disabled;
+}
+
+.scoreButtons {
+  width: 100%;
+  display: flex;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+.scoreBtnMine {
+  flex: 1;
+  height: 160rpx;
+  border-radius: $radius-lg;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba($color-primary, 0.3);
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.97);
+  }
+}
+
+.scoreBtnOpp {
+  flex: 1;
+  height: 160rpx;
+  border-radius: $radius-lg;
+  background: $color-bg-card;
+  border: 4rpx solid $color-border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: $shadow-card;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.97);
+  }
+}
+
+.scoreBtnText {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-white;
+}
+
+.scoreBtnOpp .scoreBtnText {
+  color: $color-text-primary;
+}
+
+.actionRow {
+  width: 100%;
+  display: flex;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.undoBtn {
+  flex: 1;
+  height: $button-height-md !important;
+  line-height: $button-height-md !important;
+  background: $color-bg-card !important;
+  border-radius: $radius-button !important;
+  font-size: $font-size-md !important;
+  color: $color-text-secondary !important;
+  border: 2rpx solid $color-border !important;
+  padding: 0 !important;
+
+  &::after {
+    border: none !important;
+  }
+
+  &[disabled] {
+    opacity: 0.4 !important;
+    color: $color-text-disabled !important;
+  }
+}
+
+.endBtn {
+  flex: 1;
+  height: $button-height-md !important;
+  line-height: $button-height-md !important;
+  background: $color-bg-card !important;
+  border-radius: $radius-button !important;
+  font-size: $font-size-md !important;
+  color: #F53F3F !important;
+  border: 2rpx solid #F53F3F !important;
+  padding: 0 !important;
+
+  &::after {
+    border: none !important;
+  }
+}
+
+.timerRow {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.timerText {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.endArea {
+  padding: $spacing-lg $page-padding;
+  padding-bottom: 200rpx;
+}
+
+.resultCard {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  border-radius: $radius-xl;
+  padding: $spacing-xl $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: $spacing-lg;
+  box-shadow: 0 8rpx 32rpx rgba($color-primary, 0.3);
+}
+
+.resultEmoji {
+  font-size: 80rpx;
+  margin-bottom: $spacing-md;
+}
+
+.resultText {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+  margin-bottom: $spacing-sm;
+}
+
+.resultScore {
+  font-size: $font-size-xl;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: $font-weight-medium;
+}
+
+.detailCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  margin-bottom: $spacing-md;
+}
+
+.detailTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-sm;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.detailLabel {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.detailValue {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.notesCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  margin-bottom: $spacing-lg;
+}
+
+.notesInput {
+  width: 100%;
+  height: 160rpx;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  padding: $spacing-md $spacing-lg;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  box-sizing: border-box;
+}
+
+.saveBtn {
+  width: 100% !important;
+  height: $button-height-lg !important;
+  line-height: $button-height-lg !important;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%) !important;
+  border-radius: $radius-button !important;
+  font-size: $font-size-lg !important;
+  font-weight: $font-weight-semibold !important;
+  color: $color-text-white !important;
+  border: none !important;
+  padding: 0 !important;
+
+  &::after {
+    border: none !important;
+  }
+}

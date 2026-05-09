@@ -7,7 +7,8 @@ export default defineAppConfig({
     'pages/mine/index',
     'pages/match-detail/index',
     'pages/player-profile/index',
-    'pages/player-add/index'
+    'pages/player-add/index',
+    'pages/live-match/index'
   ],
   window: {
     backgroundTextStyle: 'light',

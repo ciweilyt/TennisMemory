@@ -4,6 +4,7 @@ import Taro from '@tarojs/taro';
 import ChatBubble from '@/components/ChatBubble';
 import { parseMatchInput, generateAISummary } from '@/utils/aiParser';
 import { ParsedMatchInput, MatchType, CourtType, MatchResult, SetScore } from '@/types/match';
+import { Player } from '@/types/player';
 import { useMatchStore } from '@/store/useMatchStore';
 import { usePlayerStore } from '@/store/usePlayerStore';
 import styles from './index.module.scss';
@@ -70,12 +71,12 @@ const RecordPage: React.FC = () => {
 
   const saveMatch = (opponentName: string, partnerName: string | undefined, matchType: MatchType, courtType: CourtType, court: string, result: MatchResult, scores: SetScore[], duration: number, notes: string) => {
     try {
-      let opponentPlayer = null;
+      let opponentPlayer: Player | null = null;
       if (opponentName) {
         opponentPlayer = findOrCreatePlayer(opponentName);
       }
 
-      let partnerPlayer = null;
+      let partnerPlayer: Player | null = null;
       if (partnerName && matchType === 'doubles') {
         partnerPlayer = findOrCreatePlayer(partnerName);
       }
@@ -269,6 +270,10 @@ const RecordPage: React.FC = () => {
     }
   };
 
+  const handleLiveMatch = () => {
+    Taro.navigateTo({ url: '/pages/live-match/index' });
+  };
+
   return (
     <View className={styles.container}>
       <View className={styles.modeTabs}>
@@ -280,6 +285,10 @@ const RecordPage: React.FC = () => {
           className={mode === 'ai' ? styles.modeTabActive : styles.modeTab}
           onClick={() => setMode('ai')}
         >🤖 AI录入</Text>
+        <Text
+          className={styles.modeTab}
+          onClick={handleLiveMatch}
+        >🎾 实时记分</Text>
       </View>
 
       {mode === 'ai' ? (

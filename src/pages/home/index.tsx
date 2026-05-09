@@ -39,6 +39,10 @@ const HomePage: React.FC = () => {
     Taro.switchTab({ url: '/pages/record/index' });
   };
 
+  const handleLiveMatch = () => {
+    Taro.navigateTo({ url: '/pages/live-match/index' });
+  };
+
   const handleStats = () => {
     Taro.switchTab({ url: '/pages/stats/index' });
   };
@@ -62,6 +66,9 @@ const HomePage: React.FC = () => {
       <View className={styles.quickActions}>
         <View className={classnames(styles.actionBtn, styles.actionPrimary)} onClick={handleRecord}>
           <Text className={styles.actionText}>📝 快速记录</Text>
+        </View>
+        <View className={classnames(styles.actionBtn, styles.actionLive)} onClick={handleLiveMatch}>
+          <Text className={styles.actionText}>🎾 实时记分</Text>
         </View>
         <View className={classnames(styles.actionBtn, styles.actionSecondary)} onClick={handleStats}>
           <Text className={styles.actionTextSecondary}>📊 数据统计</Text>
