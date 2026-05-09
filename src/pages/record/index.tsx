@@ -62,6 +62,9 @@ const RecordPage: React.FC = () => {
   const [formScore3Mine, setFormScore3Mine] = useState('');
   const [formScore3Opp, setFormScore3Opp] = useState('');
   const [formDuration, setFormDuration] = useState('');
+  const [formDate, setFormDate] = useState(new Date().toISOString().split('T')[0]);
+  const [formTime, setFormTime] = useState('');
+  const [formIsGolden, setFormIsGolden] = useState(false);
   const [formNotes, setFormNotes] = useState('');
 
   const getCurrentTime = () => {
@@ -69,7 +72,7 @@ const RecordPage: React.FC = () => {
     return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
   };
 
-  const saveMatch = (opponentName: string, partnerName: string | undefined, matchType: MatchType, courtType: CourtType, court: string, result: MatchResult, scores: SetScore[], duration: number, notes: string) => {
+  const saveMatch = (opponentName: string, partnerName: string | undefined, matchType: MatchType, courtType: CourtType, court: string, result: MatchResult, scores: SetScore[], duration: number, notes: string, date?: string, time?: string) => {
     try {
       let opponentPlayer: Player | null = null;
       if (opponentName) {
@@ -85,8 +88,8 @@ const RecordPage: React.FC = () => {
 
       const newMatch = {
         id: `m${Date.now()}`,
-        date: new Date().toISOString().split('T')[0],
-        time: getCurrentTime(),
+        date: date || new Date().toISOString().split('T')[0],
+        time: time || getCurrentTime(),
         court: court || '未知',
         courtType,
         matchType,
@@ -232,6 +235,8 @@ const RecordPage: React.FC = () => {
     const courtType = courtTypeKeys[formCourtType];
     const result = resultKeys[formResult];
     const duration = parseInt(formDuration) || 60;
+    const matchDate = formDate || undefined;
+    const matchTime = formTime.trim() || undefined;
 
     const ok = saveMatch(
       opponent,
@@ -242,7 +247,9 @@ const RecordPage: React.FC = () => {
       result,
       scores,
       duration,
-      formNotes.trim()
+      formNotes.trim(),
+      matchDate,
+      matchTime
     );
 
     if (ok) {
@@ -259,6 +266,9 @@ const RecordPage: React.FC = () => {
       setFormScore3Mine('');
       setFormScore3Opp('');
       setFormDuration('');
+      setFormDate(new Date().toISOString().split('T')[0]);
+      setFormTime('');
+      setFormIsGolden(false);
       setFormNotes('');
     }
   };
@@ -348,7 +358,7 @@ const RecordPage: React.FC = () => {
             <View className={styles.formGroup}>
               <Text className={styles.formLabel}>对手 *</Text>
               <View className={styles.inputWithAction}>
-                <Input className={styles.formInput} value={formOpponent} onInput={(e) => setFormOpponent(e.detail.value)} placeholder="输入对手姓名" maxlength={20} />
+                <Input className={styles.formInputFlex} value={formOpponent} onInput={(e) => setFormOpponent(e.detail.value)} placeholder="输入对手姓名" maxlength={20} />
                 {players.length > 0 && (
                   <Picker mode="selector" range={players.map(p => p.name)} onChange={handleOpponentPick}>
                     <Text className={styles.pickBtn}>选择</Text>
@@ -402,6 +412,35 @@ const RecordPage: React.FC = () => {
             <View className={styles.formGroup}>
               <Text className={styles.formLabel}>时长(分钟)</Text>
               <Input className={styles.formInput} value={formDuration} onInput={(e) => setFormDuration(e.detail.value)} placeholder="如 90" type="number" maxlength={4} />
+            </View>
+
+            <View className={styles.formGroup}>
+              <Text className={styles.formLabel}>打球日期</Text>
+              <Picker mode="date" value={formDate} onChange={(e) => setFormDate(e.detail.value)}>
+                <View className={styles.pickerValue}>
+                  <Text>{formDate}</Text>
+                  <Text className={styles.pickerArrow}>›</Text>
+                </View>
+              </Picker>
+            </View>
+
+            <View className={styles.formGroup}>
+              <Text className={styles.formLabel}>打球时间</Text>
+              <Input className={styles.formInput} value={formTime} onInput={(e) => setFormTime(e.detail.value)} placeholder="如 14:30（默认当前时间）" maxlength={5} />
+            </View>
+
+            <View className={styles.formGroup}>
+              <Text className={styles.formLabel}>金球制（无占先）</Text>
+              <View className={styles.toggleRow}>
+                <Text
+                  className={formIsGolden ? styles.toggleOff : styles.toggleOn}
+                  onClick={() => setFormIsGolden(false)}
+                >常规</Text>
+                <Text
+                  className={formIsGolden ? styles.toggleOn : styles.toggleOff}
+                  onClick={() => setFormIsGolden(true)}
+                >金球</Text>
+              </View>
             </View>
           </View>
 

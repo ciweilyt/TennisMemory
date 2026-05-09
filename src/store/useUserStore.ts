@@ -6,6 +6,7 @@ interface UserProfile {
   bio: string;
   favoriteCourt: string;
   playingYears: string;
+  ntrpLevel: string;
 }
 
 interface UserStore {
@@ -18,7 +19,8 @@ const DEFAULT_PROFILE: UserProfile = {
   nickname: '网球爱好者',
   bio: '记录每一场比赛',
   favoriteCourt: '硬地',
-  playingYears: '3'
+  playingYears: '3',
+  ntrpLevel: '3.0'
 };
 
 export const useUserStore = create<UserStore>((set) => ({

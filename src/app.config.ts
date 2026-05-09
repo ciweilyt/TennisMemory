@@ -37,7 +37,7 @@ export default defineAppConfig({
       },
       {
         pagePath: 'pages/social/index',
-        text: '社交'
+        text: '球友'
       },
       {
         pagePath: 'pages/mine/index',

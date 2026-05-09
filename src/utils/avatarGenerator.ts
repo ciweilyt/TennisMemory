@@ -1,10 +1,17 @@
 import { Gender, PlayStyle } from '@/types/player';
 
-const SKIN_COLORS = ['#FFDBB4', '#F5C5A3', '#E8B48A', '#D4956B'];
-const HAIR_COLORS_MALE = ['#2C1810', '#4A3728', '#1A1A2E', '#6B4226', '#8B6914'];
-const HAIR_COLORS_FEMALE = ['#2C1810', '#4A3728', '#8B4513', '#D4A76A', '#C0392B', '#2C3E50'];
-const SHIRT_COLORS = ['#4A90D9', '#E74C3C', '#2ECC71', '#F39C12', '#9B59B6', '#1ABC9C', '#E67E22', '#3498DB'];
-const RACKET_COLORS = ['#8B4513', '#2C3E50', '#C0392B'];
+const PIXEL_COLORS = [
+  ['#1A6B4C', '#2E8B6A', '#4CAF7D'],
+  ['#E74C3C', '#FF6B6B', '#FF8E8E'],
+  ['#3498DB', '#5DADE2', '#85C1E9'],
+  ['#F39C12', '#F5B041', '#F7C561'],
+  ['#9B59B6', '#AF7AC5', '#C39BD3'],
+  ['#1ABC9C', '#48C9B0', '#76D7C4'],
+  ['#E67E22', '#EB984E', '#F0B27A'],
+  ['#2C3E50', '#34495E', '#5D6D7E'],
+  ['#D4F34A', '#DFF96A', '#E8FC8A'],
+  ['#FF6B9D', '#FF8DB5', '#FFAFCD'],
+];
 
 function hashCode(str: string): number {
   let hash = 0;
@@ -45,6 +52,24 @@ function base64Encode(str: string): string {
   }
 }
 
+function generatePixelGrid(hash: number): number[][] {
+  const grid: number[][] = [];
+  const size = 5;
+  for (let y = 0; y < size; y++) {
+    const row: number[] = [];
+    for (let x = 0; x < Math.ceil(size / 2); x++) {
+      const val = (hash >> (y * 3 + x)) & 1;
+      row.push(val);
+    }
+    const fullRow = [...row];
+    for (let x = Math.floor(size / 2) - 1; x >= 0; x--) {
+      fullRow.push(row[x]);
+    }
+    grid.push(fullRow.slice(0, size));
+  }
+  return grid;
+}
+
 export function generateAvatarSVG(
   name: string,
   gender: Gender,
@@ -53,96 +78,73 @@ export function generateAvatarSVG(
   isLefty: boolean
 ): string {
   const h = hashCode(name);
-  const skinColor = pickByHash(SKIN_COLORS, h);
-  const hairColor = gender === 'female' ? pickByHash(HAIR_COLORS_FEMALE, h) : pickByHash(HAIR_COLORS_MALE, h);
-  const shirtColor = pickByHash(SHIRT_COLORS, h + 1);
-  const racketColor = pickByHash(RACKET_COLORS, h + 2);
-  const isMale = gender === 'male';
+  const palette = pickByHash(PIXEL_COLORS, h);
+  const bgColor = palette[0];
+  const fgColor = palette[1];
+  const accentColor = palette[2];
 
-  let hairSVG = '';
-  if (isMale) {
-    const styleIdx = h % 3;
-    if (styleIdx === 0) {
-      hairSVG = `<rect x="28" y="12" width="44" height="20" rx="10" fill="${hairColor}"/>`;
-    } else if (styleIdx === 1) {
-      hairSVG = `<rect x="25" y="10" width="50" height="16" rx="8" fill="${hairColor}"/>
-                 <rect x="22" y="20" width="12" height="20" rx="4" fill="${hairColor}"/>
-                 <rect x="66" y="20" width="12" height="20" rx="4" fill="${hairColor}"/>`;
-    } else {
-      hairSVG = `<rect x="26" y="8" width="48" height="22" rx="12" fill="${hairColor}"/>`;
-    }
-  } else {
-    const styleIdx = h % 3;
-    if (styleIdx === 0) {
-      hairSVG = `<rect x="24" y="10" width="52" height="18" rx="10" fill="${hairColor}"/>
-                 <rect x="20" y="22" width="14" height="40" rx="7" fill="${hairColor}"/>
-                 <rect x="66" y="22" width="14" height="40" rx="7" fill="${hairColor}"/>`;
-    } else if (styleIdx === 1) {
-      hairSVG = `<rect x="22" y="8" width="56" height="20" rx="12" fill="${hairColor}"/>
-                 <ellipse cx="30" cy="50" rx="10" ry="20" fill="${hairColor}"/>
-                 <ellipse cx="70" cy="50" rx="10" ry="20" fill="${hairColor}"/>`;
-    } else {
-      hairSVG = `<rect x="24" y="6" width="52" height="24" rx="12" fill="${hairColor}"/>
-                 <rect x="20" y="24" width="60" height="12" rx="6" fill="${hairColor}"/>`;
+  const grid = generatePixelGrid(h + 7);
+
+  const pixelSize = 16;
+  const padding = 10;
+  const svgSize = grid.length * pixelSize + padding * 2;
+
+  let pixelsSVG = '';
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[y].length; x++) {
+      if (grid[y][x]) {
+        const px = padding + x * pixelSize;
+        const py = padding + y * pixelSize;
+        pixelsSVG += `<rect x="${px}" y="${py}" width="${pixelSize}" height="${pixelSize}" fill="${fgColor}"/>`;
+      }
     }
   }
 
-  const eyeY = 42;
-  const eyeSpacing = 12;
-  const eyeSize = isMale ? 3 : 4;
-  const mouthY = isMale ? 54 : 52;
-  const blushOpacity = isMale ? 0.2 : 0.35;
-
-  let accessorySVG = '';
-  const accIdx = h % 5;
-  if (accIdx === 0) {
-    accessorySVG = `<circle cx="38" cy="${eyeY}" r="8" fill="none" stroke="#333" stroke-width="1.5"/>
-                    <circle cx="62" cy="${eyeY}" r="8" fill="none" stroke="#333" stroke-width="1.5"/>
-                    <line x1="46" y1="${eyeY}" x2="54" y2="${eyeY}" stroke="#333" stroke-width="1.5"/>`;
-  } else if (accIdx === 1) {
-    accessorySVG = `<rect x="36" y="8" width="28" height="4" rx="2" fill="#333"/>`;
-  }
-
-  let racketSVG = '';
-  const showRacket = h % 2 === 0;
-  if (showRacket) {
-    const rx = isLefty ? 12 : 88;
-    const ry = 40;
-    const angle = isLefty ? -30 : 30;
-    racketSVG = `<g transform="rotate(${angle} ${rx} ${ry})">
-      <rect x="${rx - 2}" y="${ry}" width="4" height="24" rx="2" fill="${racketColor}"/>
-      <ellipse cx="${rx}" cy="${ry - 6}" rx="10" ry="14" fill="none" stroke="${racketColor}" stroke-width="2"/>
-      <line x1="${rx - 8}" y1="${ry - 6}" x2="${rx + 8}" y2="${ry - 6}" stroke="${racketColor}" stroke-width="0.5" opacity="0.5"/>
-      <line x1="${rx}" y1="${ry - 18}" x2="${rx}" y2="${ry + 6}" stroke="${racketColor}" stroke-width="0.5" opacity="0.5"/>
-    </g>`;
+  let borderSVG = '';
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[y].length; x++) {
+      if (grid[y][x]) {
+        const hasTop = y === 0 || !grid[y - 1][x];
+        const hasBottom = y === grid.length - 1 || !grid[y + 1][x];
+        const hasLeft = x === 0 || !grid[y][x - 1];
+        const hasRight = x === grid[y].length - 1 || !grid[y][x + 1];
+        const px = padding + x * pixelSize;
+        const py = padding + y * pixelSize;
+        if (hasTop) borderSVG += `<line x1="${px}" y1="${py}" x2="${px + pixelSize}" y2="${py}" stroke="${accentColor}" stroke-width="1" opacity="0.3"/>`;
+        if (hasBottom) borderSVG += `<line x1="${px}" y1="${py + pixelSize}" x2="${px + pixelSize}" y2="${py + pixelSize}" stroke="${accentColor}" stroke-width="1" opacity="0.3"/>`;
+        if (hasLeft) borderSVG += `<line x1="${px}" y1="${py}" x2="${px}" y2="${py + pixelSize}" stroke="${accentColor}" stroke-width="1" opacity="0.3"/>`;
+        if (hasRight) borderSVG += `<line x1="${px + pixelSize}" y1="${py}" x2="${px + pixelSize}" y2="${py + pixelSize}" stroke="${accentColor}" stroke-width="1" opacity="0.3"/>`;
+      }
+    }
   }
 
   const ntrpNum = parseFloat(ntrpLevel) || 0;
-  const skillBadge = ntrpNum >= 4.5 ? '⭐' : ntrpNum >= 4.0 ? '✦' : '';
-  const skillBadgeSVG = skillBadge
-    ? `<text x="82" y="22" font-size="14" text-anchor="middle">${skillBadge}</text>`
-    : '';
+  let badgeSVG = '';
+  if (ntrpNum >= 4.5) {
+    badgeSVG = `<circle cx="${svgSize - 8}" cy="12" r="8" fill="${accentColor}"/>
+                <text x="${svgSize - 8}" y="16" font-size="10" text-anchor="middle" fill="white" font-weight="bold">★</text>`;
+  } else if (ntrpNum >= 4.0) {
+    badgeSVG = `<circle cx="${svgSize - 8}" cy="12" r="8" fill="${fgColor}"/>
+                <text x="${svgSize - 8}" y="16" font-size="10" text-anchor="middle" fill="white" font-weight="bold">✦</text>`;
+  }
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  const playStyleIcon = playStyle === 'serve_volley' ? '🏐' : playStyle === 'baseline' ? '🎯' : playStyle === 'all_court' ? '⚡' : '🛡️';
+  const styleBadgeSVG = `<text x="12" y="${svgSize - 4}" font-size="12" text-anchor="middle">${playStyleIcon}</text>`;
+
+  const leftyBadge = isLefty ? `<text x="${svgSize - 4}" y="${svgSize - 4}" font-size="10" text-anchor="end">🤚</text>` : '';
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${svgSize} ${svgSize}" width="200" height="200">
   <defs>
-    <clipPath id="circleClip"><circle cx="50" cy="50" r="48"/></clipPath>
+    <clipPath id="pixelClip"><rect x="0" y="0" width="${svgSize}" height="${svgSize}" rx="8"/></clipPath>
   </defs>
-  <g clip-path="url(#circleClip)">
-    <circle cx="50" cy="50" r="48" fill="#F0F4F0"/>
-    <rect x="20" y="65" width="60" height="40" rx="4" fill="${shirtColor}"/>
-    <circle cx="50" cy="38" r="22" fill="${skinColor}"/>
-    ${hairSVG}
-    <circle cx="${50 - eyeSpacing}" cy="${eyeY}" r="${eyeSize}" fill="#2C1810"/>
-    <circle cx="${50 + eyeSpacing}" cy="${eyeY}" r="${eyeSize}" fill="#2C1810"/>
-    <circle cx="${50 - eyeSpacing + 1}" cy="${eyeY - 1}" r="1.2" fill="white"/>
-    <circle cx="${50 + eyeSpacing + 1}" cy="${eyeY - 1}" r="1.2" fill="white"/>
-    <ellipse cx="${50 - 16}" cy="50" rx="6" ry="3" fill="#FF9999" opacity="${blushOpacity}"/>
-    <ellipse cx="${50 + 16}" cy="50" rx="6" ry="3" fill="#FF9999" opacity="${blushOpacity}"/>
-    <path d="M 44 ${mouthY} Q 50 ${mouthY + 6} 56 ${mouthY}" fill="none" stroke="#2C1810" stroke-width="1.5" stroke-linecap="round"/>
-    ${accessorySVG}
-    ${racketSVG}
-    ${skillBadgeSVG}
+  <g clip-path="url(#pixelClip)">
+    <rect x="0" y="0" width="${svgSize}" height="${svgSize}" fill="${bgColor}"/>
+    ${pixelsSVG}
+    ${borderSVG}
   </g>
+  ${badgeSVG}
+  ${styleBadgeSVG}
+  ${leftyBadge}
 </svg>`;
 }
 

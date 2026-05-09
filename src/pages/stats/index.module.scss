@@ -82,6 +82,134 @@
   width: calc(50% - #{$spacing-md} / 2);
 }
 
+.calendarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: $spacing-lg;
+  margin-bottom: $spacing-md;
+}
+
+.calendarCount {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+  margin-top: $spacing-lg;
+}
+
+.calendarCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  margin-bottom: $spacing-lg;
+}
+
+.calendarNav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-lg;
+}
+
+.calendarNavBtn {
+  font-size: $font-size-xl;
+  color: $color-primary;
+  font-weight: $font-weight-bold;
+  padding: $spacing-sm $spacing-md;
+}
+
+.calendarTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.calendarWeekRow {
+  display: flex;
+  margin-bottom: $spacing-sm;
+}
+
+.calendarWeekDay {
+  flex: 1;
+  text-align: center;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  font-weight: $font-weight-medium;
+}
+
+.calendarGrid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.calendarDay {
+  width: calc(100% / 7);
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-sm;
+  margin-bottom: 4rpx;
+}
+
+.dayEmpty {
+  background: transparent;
+}
+
+.dayLevel1 {
+  background: rgba($color-primary, 0.15);
+}
+
+.dayLevel2 {
+  background: rgba($color-primary, 0.35);
+}
+
+.dayLevel3 {
+  background: rgba($color-primary, 0.6);
+}
+
+.dayText {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.dayTextActive {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+}
+
+.dayLevel3 .dayTextActive {
+  color: $color-text-white;
+}
+
+.calendarLegend {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-lg;
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.legendDot {
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 4rpx;
+}
+
+.legendText {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
 .courtSection {
   margin-bottom: $spacing-lg;
 }

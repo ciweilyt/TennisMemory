@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Input } from '@tarojs/components';
+import { View, Text, Input, Picker } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import classnames from 'classnames';
 import { mockEloInfo, mockOverallStats } from '@/data/stats';
@@ -11,6 +11,7 @@ import { exportAllData, importAllData } from '@/utils/storage';
 import styles from './index.module.scss';
 
 const courtOptions = ['硬地', '红土', '草地'];
+const ntrpOptions = ['1.0', '1.5', '2.0', '2.5', '3.0', '3.5', '4.0', '4.5', '5.0', '5.5', '6.0', '6.5', '7.0'];
 
 const MinePage: React.FC = () => {
   const profile = useUserStore((state) => state.profile);
@@ -24,12 +25,14 @@ const MinePage: React.FC = () => {
   const [editBio, setEditBio] = useState(profile.bio);
   const [editCourt, setEditCourt] = useState(profile.favoriteCourt);
   const [editYears, setEditYears] = useState(profile.playingYears);
+  const [editNtrp, setEditNtrp] = useState(ntrpOptions.indexOf(profile.ntrpLevel || '3.0'));
 
   const handleEdit = () => {
     setEditNickname(profile.nickname);
     setEditBio(profile.bio);
     setEditCourt(profile.favoriteCourt);
     setEditYears(profile.playingYears);
+    setEditNtrp(ntrpOptions.indexOf(profile.ntrpLevel || '3.0'));
     setEditing(true);
   };
 
@@ -43,7 +46,8 @@ const MinePage: React.FC = () => {
       nickname,
       bio: editBio.trim(),
       favoriteCourt: editCourt,
-      playingYears: editYears.trim()
+      playingYears: editYears.trim(),
+      ntrpLevel: ntrpOptions[editNtrp] || '3.0'
     });
     setEditing(false);
     Taro.showToast({ title: '保存成功', icon: 'success' });
@@ -185,6 +189,10 @@ const MinePage: React.FC = () => {
           <Text className={styles.infoLabel}>球龄</Text>
           <Text className={styles.infoValue}>{profile.playingYears}年</Text>
         </View>
+        <View className={styles.infoRow}>
+          <Text className={styles.infoLabel}>等级</Text>
+          <Text className={styles.infoValue}>NTRP {profile.ntrpLevel || '3.0'}</Text>
+        </View>
         <View className={styles.editBtn} onClick={handleEdit}>
           <Text className={styles.editBtnText}>✏️ 编辑信息</Text>
         </View>
@@ -260,6 +268,15 @@ const MinePage: React.FC = () => {
             <View className={styles.formGroup}>
               <Text className={styles.formLabel}>球龄（年）</Text>
               <Input className={styles.formInput} value={editYears} onInput={(e) => setEditYears(e.detail.value)} placeholder="输入球龄" type="number" maxlength={2} />
+            </View>
+            <View className={styles.formGroup}>
+              <Text className={styles.formLabel}>等级（NTRP）</Text>
+              <Picker mode="selector" range={ntrpOptions} value={editNtrp >= 0 ? editNtrp : 4} onChange={(e) => setEditNtrp(Number(e.detail.value))}>
+                <View className={styles.pickerValue}>
+                  <Text>{ntrpOptions[editNtrp >= 0 ? editNtrp : 4]}</Text>
+                  <Text className={styles.pickerArrow}>›</Text>
+                </View>
+              </Picker>
             </View>
             <View className={styles.modalActions}>
               <View className={styles.modalCancel} onClick={handleCancel}>

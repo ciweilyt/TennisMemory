@@ -72,7 +72,21 @@ const LiveMatchPage: React.FC = () => {
   const setsWonMine = sets.filter(s => s.mine > s.opponent).length;
   const setsWonOpp = sets.filter(s => s.opponent > s.mine).length;
   const matchEnded = setsWonMine >= 2 || setsWonOpp >= 2;
-  const matchResult: MatchResult = setsWonMine > setsWonOpp ? 'win' : 'lose';
+
+  const getMidEndResult = (): MatchResult => {
+    if (setsWonMine > setsWonOpp) return 'win';
+    if (setsWonOpp > setsWonMine) return 'lose';
+    const currentSet = sets[currentSetIdx];
+    if (currentSet.mine > currentSet.opponent) return 'win';
+    if (currentSet.opponent > currentSet.mine) return 'lose';
+    if (game.mine > game.opponent) return 'win';
+    if (game.opponent > game.mine) return 'lose';
+    return 'lose';
+  };
+
+  const matchResult: MatchResult = matchEnded
+    ? (setsWonMine > setsWonOpp ? 'win' : 'lose')
+    : getMidEndResult();
 
   const getCurrentTime = () => {
     const now = new Date();
@@ -415,13 +429,17 @@ const LiveMatchPage: React.FC = () => {
         <View className={styles.setsRow}>
           <Text className={styles.setsLabelMe}>我</Text>
           {sets.map((s, i) => (
-            <Text key={i} className={i === currentSetIdx ? styles.setScoreActive : styles.setScore}>{s.mine}</Text>
+            <Text key={i} className={i === currentSetIdx ? styles.setScoreActive : styles.setScore}>
+              {s.mine}:{s.opponent}
+            </Text>
           ))}
         </View>
         <View className={styles.setsRow}>
           <Text className={styles.setsLabelOpp}>{setupOpponent}</Text>
           {sets.map((s, i) => (
-            <Text key={i} className={i === currentSetIdx ? styles.setScoreActive : styles.setScore}>{s.opponent}</Text>
+            <Text key={i} className={i === currentSetIdx ? styles.setScoreActive : styles.setScore}>
+              {s.opponent}:{s.mine}
+            </Text>
           ))}
         </View>
       </View>
