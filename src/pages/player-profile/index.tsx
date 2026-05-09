@@ -3,7 +3,7 @@ import { View, Text, Image } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
 import { usePlayerStore } from '@/store/usePlayerStore';
 import { useMatchStore } from '@/store/useMatchStore';
-import { GENDER_MAP, PLAY_STYLE_MAP, SKILL_LEVEL_MAP } from '@/types/player';
+import { GENDER_MAP, PLAY_STYLE_MAP } from '@/types/player';
 import { formatScore } from '@/utils/statsCalculator';
 import classnames from 'classnames';
 import styles from './index.module.scss';
@@ -35,7 +35,7 @@ const PlayerProfilePage: React.FC = () => {
           <Text className={styles.playerName}>{player.name}</Text>
           <Text className={styles.playerElo}>Elo {player.elo}</Text>
           <Text className={styles.playerMeta}>
-            {GENDER_MAP[player.gender]} · {player.isLefty ? '左手' : '右手'} · {SKILL_LEVEL_MAP[player.skillLevel]}
+            {GENDER_MAP[player.gender]} · {player.isLefty ? '左手' : '右手'} · NTRP {player.ntrpLevel}
           </Text>
         </View>
       </View>
@@ -68,7 +68,7 @@ const PlayerProfilePage: React.FC = () => {
       <View className={styles.tagCard}>
         <Text className={styles.tag}>{GENDER_MAP[player.gender]}</Text>
         <Text className={styles.tag}>{player.isLefty ? '左手选手' : '右手选手'}</Text>
-        <Text className={styles.tag}>{SKILL_LEVEL_MAP[player.skillLevel]}</Text>
+        <Text className={styles.tag}>NTRP {player.ntrpLevel}</Text>
         <Text className={styles.tag}>{PLAY_STYLE_MAP[player.playStyle]}</Text>
         <Text className={styles.tag}>{player.favoriteCourt}偏好</Text>
         <Text className={styles.tag}>Elo {player.elo}</Text>

@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { Player, PlayerRelationship } from '@/types/player';
 import { loadData, saveData, STORAGE_KEYS } from '@/utils/storage';
 import { generateAvatarURI } from '@/utils/avatarGenerator';
-import { calculateElo } from '@/utils/elo';
 
 interface PlayerStore {
   players: Player[];
@@ -31,7 +30,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
       playerData.name,
       playerData.gender,
       playerData.playStyle,
-      playerData.skillLevel,
+      playerData.ntrpLevel,
       playerData.isLefty
     );
     const now = new Date().toISOString();
@@ -87,7 +86,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
     return get().addPlayer({
       name,
       gender: 'male',
-      skillLevel: 'intermediate',
+      ntrpLevel: '3.0',
       playStyle: 'baseline',
       isLefty: false,
       favoriteCourt: '硬地',

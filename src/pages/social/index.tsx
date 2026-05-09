@@ -4,7 +4,7 @@ import Taro from '@tarojs/taro';
 import PlayerAvatar from '@/components/PlayerAvatar';
 import { usePlayerStore } from '@/store/usePlayerStore';
 import { useMatchStore } from '@/store/useMatchStore';
-import { GENDER_MAP, PLAY_STYLE_MAP, SKILL_LEVEL_MAP } from '@/types/player';
+import { GENDER_MAP, PLAY_STYLE_MAP } from '@/types/player';
 import styles from './index.module.scss';
 
 const SocialPage: React.FC = () => {
@@ -68,7 +68,7 @@ const SocialPage: React.FC = () => {
                   </View>
                   <View className={styles.rivalInfo}>
                     <Text className={styles.rivalName}>{rival.name} {rival.isLefty ? '🤚左' : ''}</Text>
-                    <Text className={styles.rivalMeta}>Elo {rival.elo} · {SKILL_LEVEL_MAP[rival.skillLevel]} · {PLAY_STYLE_MAP[rival.playStyle]}</Text>
+                    <Text className={styles.rivalMeta}>Elo {rival.elo} · NTRP {rival.ntrpLevel} · {PLAY_STYLE_MAP[rival.playStyle]}</Text>
                   </View>
                   <View className={styles.rivalRecord}>
                     <Text className={styles.rivalWin}>{record.wins}</Text>

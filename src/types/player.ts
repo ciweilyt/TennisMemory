@@ -1,13 +1,12 @@
 export type Gender = 'male' | 'female';
 export type PlayStyle = 'baseline' | 'serve_volley' | 'all_court' | 'counter_puncher';
-export type SkillLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert';
 export type PlayerRelationship = 'rival' | 'partner' | 'frequent' | 'casual';
 
 export interface Player {
   id: string;
   name: string;
   gender: Gender;
-  skillLevel: SkillLevel;
+  ntrpLevel: string;
   playStyle: PlayStyle;
   isLefty: boolean;
   favoriteCourt: string;
@@ -23,13 +22,6 @@ export interface Player {
   createdAt: string;
   updatedAt: string;
 }
-
-export const SKILL_LEVEL_MAP: Record<SkillLevel, string> = {
-  beginner: '初学',
-  intermediate: '中级',
-  advanced: '高级',
-  expert: '专业'
-};
 
 export const PLAY_STYLE_MAP: Record<PlayStyle, string> = {
   baseline: '底线型',

@@ -1,4 +1,4 @@
-import { Gender, PlayStyle, SkillLevel } from '@/types/player';
+import { Gender, PlayStyle } from '@/types/player';
 
 const SKIN_COLORS = ['#FFDBB4', '#F5C5A3', '#E8B48A', '#D4956B'];
 const HAIR_COLORS_MALE = ['#2C1810', '#4A3728', '#1A1A2E', '#6B4226', '#8B6914'];
@@ -38,7 +38,7 @@ export function generateAvatarSVG(
   name: string,
   gender: Gender,
   playStyle: PlayStyle,
-  skillLevel: SkillLevel,
+  ntrpLevel: string,
   isLefty: boolean
 ): string {
   const h = hashCode(name);
@@ -106,7 +106,8 @@ export function generateAvatarSVG(
     </g>`;
   }
 
-  const skillBadge = skillLevel === 'expert' ? '⭐' : skillLevel === 'advanced' ? '✦' : '';
+  const ntrpNum = parseFloat(ntrpLevel) || 0;
+  const skillBadge = ntrpNum >= 4.5 ? '⭐' : ntrpNum >= 4.0 ? '✦' : '';
   const skillBadgeSVG = skillBadge
     ? `<text x="82" y="22" font-size="14" text-anchor="middle">${skillBadge}</text>`
     : '';
@@ -144,9 +145,9 @@ export function generateAvatarURI(
   name: string,
   gender: Gender,
   playStyle: PlayStyle,
-  skillLevel: SkillLevel,
+  ntrpLevel: string,
   isLefty: boolean
 ): string {
-  const svg = generateAvatarSVG(name, gender, playStyle, skillLevel, isLefty);
+  const svg = generateAvatarSVG(name, gender, playStyle, ntrpLevel, isLefty);
   return svgToDataURI(svg);
 }

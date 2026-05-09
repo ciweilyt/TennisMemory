@@ -1,14 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, Input, Textarea, Switch } from '@tarojs/components';
 import Taro from '@tarojs/taro';
-import classnames from 'classnames';
 import { usePlayerStore } from '@/store/usePlayerStore';
-import { Gender, PlayStyle, SkillLevel, GENDER_MAP, PLAY_STYLE_MAP, SKILL_LEVEL_MAP } from '@/types/player';
+import { Gender, PlayStyle, GENDER_MAP, PLAY_STYLE_MAP } from '@/types/player';
 import { generateAvatarURI } from '@/utils/avatarGenerator';
 import styles from './index.module.scss';
 
 const genderOptions: Gender[] = ['male', 'female'];
-const skillOptions: SkillLevel[] = ['beginner', 'intermediate', 'advanced', 'expert'];
 const styleOptions: PlayStyle[] = ['baseline', 'serve_volley', 'all_court', 'counter_puncher'];
 const courtOptions = ['硬地', '红土', '草地'];
 
@@ -18,7 +16,7 @@ const PlayerAddPage: React.FC = () => {
 
   const [name, setName] = useState('');
   const [gender, setGender] = useState<Gender>('male');
-  const [skillLevel, setSkillLevel] = useState<SkillLevel>('intermediate');
+  const [ntrpLevel, setNtrpLevel] = useState('3.0');
   const [playStyle, setPlayStyle] = useState<PlayStyle>('baseline');
   const [isLefty, setIsLefty] = useState(false);
   const [favoriteCourt, setFavoriteCourt] = useState('硬地');
@@ -26,10 +24,22 @@ const PlayerAddPage: React.FC = () => {
 
   const avatarURI = useMemo(() => {
     if (!name.trim()) return '';
-    return generateAvatarURI(name.trim(), gender, playStyle, skillLevel, isLefty);
-  }, [name, gender, playStyle, skillLevel, isLefty]);
+    return generateAvatarURI(name.trim(), gender, playStyle, ntrpLevel, isLefty);
+  }, [name, gender, playStyle, ntrpLevel, isLefty]);
 
-  const handleSave = () => {
+  const handleGenderSelect = useCallback((g: Gender) => {
+    setGender(g);
+  }, []);
+
+  const handleStyleSelect = useCallback((s: PlayStyle) => {
+    setPlayStyle(s);
+  }, []);
+
+  const handleCourtSelect = useCallback((c: string) => {
+    setFavoriteCourt(c);
+  }, []);
+
+  const handleSave = useCallback(() => {
     const trimmedName = name.trim();
     if (!trimmedName) {
       Taro.showToast({ title: '请输入球友姓名', icon: 'none' });
@@ -43,7 +53,7 @@ const PlayerAddPage: React.FC = () => {
     addPlayer({
       name: trimmedName,
       gender,
-      skillLevel,
+      ntrpLevel: ntrpLevel || '3.0',
       playStyle,
       isLefty,
       favoriteCourt,
@@ -54,7 +64,7 @@ const PlayerAddPage: React.FC = () => {
 
     Taro.showToast({ title: '添加成功', icon: 'success' });
     setTimeout(() => Taro.navigateBack(), 500);
-  };
+  }, [name, gender, ntrpLevel, playStyle, isLefty, favoriteCourt, notes, players, addPlayer]);
 
   return (
     <View className={styles.container}>
@@ -81,30 +91,42 @@ const PlayerAddPage: React.FC = () => {
           <Text className={styles.formLabel}>性别</Text>
           <View className={styles.optionRow}>
             {genderOptions.map((g) => (
-              <View key={g} className={classnames(styles.optionBtn, gender === g && styles.optionActive)} onClick={() => setGender(g)}>
-                <Text className={classnames(styles.optionText, gender === g && styles.optionTextActive)}>{GENDER_MAP[g]}</Text>
+              <View
+                key={g}
+                className={`${styles.optionBtn} ${gender === g ? styles.optionActive : ''}`}
+                hoverClass={styles.optionHover}
+                onClick={() => handleGenderSelect(g)}
+              >
+            <Text className={`${styles.optionText} ${gender === g ? styles.optionTextActive : ''}`}>{GENDER_MAP[g]}</Text>
               </View>
             ))}
           </View>
         </View>
 
         <View className={styles.formGroup}>
-          <Text className={styles.formLabel}>技术水平</Text>
-          <View className={styles.optionRow}>
-            {skillOptions.map((s) => (
-              <View key={s} className={classnames(styles.optionBtn, skillLevel === s && styles.optionActive)} onClick={() => setSkillLevel(s)}>
-                <Text className={classnames(styles.optionText, skillLevel === s && styles.optionTextActive)}>{SKILL_LEVEL_MAP[s]}</Text>
-              </View>
-            ))}
-          </View>
+          <Text className={styles.formLabel}>技术水平（NTRP）</Text>
+          <Input
+            className={styles.formInput}
+            value={ntrpLevel}
+            onInput={(e) => setNtrpLevel(e.detail.value)}
+            placeholder="如 2.5、3.0、4.0"
+            type="digit"
+            maxlength={4}
+          />
+          <Text className={styles.formHint}>参考：1.0初学 ~ 7.0职业</Text>
         </View>
 
         <View className={styles.formGroup}>
           <Text className={styles.formLabel}>打法风格</Text>
           <View className={styles.optionRow}>
             {styleOptions.map((s) => (
-              <View key={s} className={classnames(styles.optionBtn, playStyle === s && styles.optionActive)} onClick={() => setPlayStyle(s)}>
-                <Text className={classnames(styles.optionText, playStyle === s && styles.optionTextActive)}>{PLAY_STYLE_MAP[s]}</Text>
+              <View
+                key={s}
+                className={`${styles.optionBtn} ${playStyle === s ? styles.optionActive : ''}`}
+                hoverClass={styles.optionHover}
+                onClick={() => handleStyleSelect(s)}
+              >
+            <Text className={`${styles.optionText} ${playStyle === s ? styles.optionTextActive : ''}`}>{PLAY_STYLE_MAP[s]}</Text>
               </View>
             ))}
           </View>
@@ -121,8 +143,13 @@ const PlayerAddPage: React.FC = () => {
           <Text className={styles.formLabel}>偏好场地</Text>
           <View className={styles.optionRow}>
             {courtOptions.map((c) => (
-              <View key={c} className={classnames(styles.optionBtn, favoriteCourt === c && styles.optionActive)} onClick={() => setFavoriteCourt(c)}>
-                <Text className={classnames(styles.optionText, favoriteCourt === c && styles.optionTextActive)}>{c}</Text>
+              <View
+                key={c}
+                className={`${styles.optionBtn} ${favoriteCourt === c ? styles.optionActive : ''}`}
+                hoverClass={styles.optionHover}
+                onClick={() => handleCourtSelect(c)}
+              >
+            <Text className={`${styles.optionText} ${favoriteCourt === c ? styles.optionTextActive : ''}`}>{c}</Text>
               </View>
             ))}
           </View>
@@ -134,7 +161,7 @@ const PlayerAddPage: React.FC = () => {
         </View>
       </View>
 
-      <View className={styles.submitBtn} onClick={handleSave}>
+      <View className={styles.submitBtn} hoverClass={styles.submitBtnHover} onClick={handleSave}>
         <Text className={styles.submitText}>保存球友</Text>
       </View>
     </View>
