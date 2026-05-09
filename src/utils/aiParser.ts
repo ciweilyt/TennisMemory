@@ -3,14 +3,25 @@ import { ParsedMatchInput, CourtType, MatchType, SetScore, MatchResult } from '@
 export function parseMatchInput(input: string): ParsedMatchInput {
   const result: ParsedMatchInput = {};
 
-  const opponentMatch = input.match(/[和与跟](\S+?)(?:双打|单打|打|在)/);
-  if (opponentMatch) {
-    result.opponent = opponentMatch[1];
+  const opponentPatterns = [
+    /[和与跟](\S{1,10}?)(?:双打|单打|打|在|，|。|,|\.)/,
+    /[和与跟](\S{1,10}?)(?:\s|$)/,
+    /对手(?:是|为)?(\S{1,10}?)(?:，|。|,|\.|\s|$)/,
+    /对阵(\S{1,10}?)(?:，|。|,|\.|\s|$)/,
+    /vs\.?\s*(\S{1,10}?)(?:\s|，|。|,|\.|$)/
+  ];
+
+  for (const pattern of opponentPatterns) {
+    const match = input.match(pattern);
+    if (match && match[1]) {
+      result.opponent = match[1].trim();
+      break;
+    }
   }
 
-  const partnerMatch = input.match(/(?:搭档|配合)(\S+?)(?:双打|打|，|。|$)/);
+  const partnerMatch = input.match(/(?:搭档|配合)(?:是|为)?(\S{1,10}?)(?:双打|打|，|。|,|\.|\s|$)/);
   if (partnerMatch) {
-    result.partner = partnerMatch[1];
+    result.partner = partnerMatch[1].trim();
   }
 
   if (input.includes('双打')) {
@@ -48,9 +59,9 @@ export function parseMatchInput(input: string): ParsedMatchInput {
   else if (input.includes('红土')) result.courtType = 'clay';
   else if (input.includes('草地')) result.courtType = 'grass';
 
-  const courtMatch = input.match(/在(\S+?)(?:打了|打|的)/);
+  const courtMatch = input.match(/在(\S{1,10}?)(?:打了|打|的|，|。)/);
   if (courtMatch) {
-    result.court = courtMatch[1];
+    result.court = courtMatch[1].trim();
   }
 
   if (input.includes('昨晚') || input.includes('昨天')) {
@@ -63,7 +74,7 @@ export function parseMatchInput(input: string): ParsedMatchInput {
     result.date = dayBefore.toISOString().split('T')[0];
   }
 
-  if (input.includes('赢了') || input.includes('胜了') || input.includes('赢了')) {
+  if (input.includes('赢了') || input.includes('胜了')) {
     result.result = 'win';
   } else if (input.includes('输了') || input.includes('败了') || input.includes('负了')) {
     result.result = 'lose';
@@ -111,12 +122,8 @@ export function generateAISummary(parsed: ParsedMatchInput): string {
   }
 
   if (parsed.scores && parsed.scores.length > 0) {
-    const lastSet = parsed.scores[parsed.scores.length - 1];
     if (parsed.scores.length >= 3) {
       parts.push('三盘大战展现了不错的韧性');
-    }
-    if (lastSet.tiebreak) {
-      parts.push('抢七阶段表现关键');
     }
   }
 

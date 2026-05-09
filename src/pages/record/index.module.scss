@@ -113,26 +113,21 @@
 }
 
 .confirmBtn {
-  width: 100%;
-  height: $button-height-lg;
-  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
-  border-radius: $radius-button;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 100% !important;
+  height: $button-height-lg !important;
+  line-height: $button-height-lg !important;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%) !important;
+  border-radius: $radius-button !important;
   margin-top: $spacing-lg;
-  transition: all $transition-base;
+  font-size: $font-size-lg !important;
+  font-weight: $font-weight-medium !important;
+  color: $color-text-white !important;
+  border: none !important;
+  padding: 0 !important;
 
-  &:active {
-    opacity: 0.9;
-    transform: scale(0.98);
+  &::after {
+    border: none !important;
   }
-}
-
-.confirmText {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-medium;
-  color: $color-text-white;
 }
 
 .hintCard {

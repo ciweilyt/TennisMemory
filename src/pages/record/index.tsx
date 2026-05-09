@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Input } from '@tarojs/components';
+import { View, Text, Input, Button } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import ChatBubble from '@/components/ChatBubble';
 import { parseMatchInput, generateAISummary } from '@/utils/aiParser';
@@ -24,7 +24,7 @@ const RecordPage: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '0',
-      content: '嗨！告诉我你今天的比赛情况吧 🎾\n\n比如："昨晚和Kevin在基地打了两个小时，6:3输了，发球状态很差"\n\n我会自动识别球友并更新TA的档案哦~',
+      content: '嗨！告诉我你今天的比赛情况吧 🎾\n\n比如："和Kevin打了两个小时，6:3输了，发球状态很差"\n\n我会自动识别球友并更新TA的档案哦~',
       isUser: false,
       time: ''
     }
@@ -34,6 +34,7 @@ const RecordPage: React.FC = () => {
   const findOrCreatePlayer = usePlayerStore((state) => state.findOrCreatePlayer);
   const updatePlayerAfterMatch = usePlayerStore((state) => state.updatePlayerAfterMatch);
   const recalculateRelationships = usePlayerStore((state) => state.recalculateRelationships);
+  const getPlayerByName = usePlayerStore((state) => state.getPlayerByName);
 
   const getCurrentTime = () => {
     const now = new Date();
@@ -67,7 +68,12 @@ const RecordPage: React.FC = () => {
 
   const buildAIResponse = (parsed: ParsedMatchInput): string => {
     const parts: string[] = ['我帮你解析了比赛信息：\n'];
-    if (parsed.opponent) parts.push(`🏸 对手：${parsed.opponent}（${parsed.opponent === '未知' ? '新球友' : '已有球友'}）`);
+    if (parsed.opponent) {
+      const existing = getPlayerByName(parsed.opponent);
+      parts.push(`🏸 对手：${parsed.opponent}${existing ? '（已有球友）' : '（新球友，将自动创建）'}`);
+    } else {
+      parts.push('🏸 对手：未识别（请补充对手姓名）');
+    }
     if (parsed.partner) parts.push(`🤝 搭档：${parsed.partner}`);
     if (parsed.matchType) parts.push(`📋 类型：${matchTypeMap[parsed.matchType]}`);
     if (parsed.scores) parts.push(`📊 比分：${parsed.scores.map(s => `${s.mine}:${s.opponent}`).join(' ')}`);
@@ -84,58 +90,65 @@ const RecordPage: React.FC = () => {
   const handleConfirm = () => {
     if (!parsedResult) return;
 
-    const opponentPlayer = parsedResult.opponent
-      ? findOrCreatePlayer(parsedResult.opponent)
-      : null;
+    try {
+      let opponentPlayer = null;
+      if (parsedResult.opponent) {
+        opponentPlayer = findOrCreatePlayer(parsedResult.opponent);
+      }
 
-    const partnerPlayer = parsedResult.partner
-      ? findOrCreatePlayer(parsedResult.partner)
-      : null;
+      let partnerPlayer = null;
+      if (parsedResult.partner) {
+        partnerPlayer = findOrCreatePlayer(parsedResult.partner);
+      }
 
-    const eloChange = parsedResult.result === 'win' ? 12 : -8;
+      const eloChange = parsedResult.result === 'win' ? 12 : -8;
 
-    const newMatch = {
-      id: `m${Date.now()}`,
-      date: parsedResult.date || new Date().toISOString().split('T')[0],
-      time: getCurrentTime(),
-      court: parsedResult.court || '未知',
-      courtType: parsedResult.courtType || 'hard' as const,
-      matchType: parsedResult.matchType || 'singles' as const,
-      opponentId: opponentPlayer?.id || '',
-      opponent: opponentPlayer?.name || '未知',
-      partnerId: partnerPlayer?.id,
-      partner: partnerPlayer?.name,
-      scores: parsedResult.scores || [{ mine: 0, opponent: 0 }],
-      result: parsedResult.result || 'lose' as const,
-      duration: parsedResult.duration || 60,
-      weather: 'sunny' as const,
-      eloChange,
-      notes: parsedResult.notes || '',
-      aiSummary: generateAISummary(parsedResult),
-      createdAt: new Date().toISOString()
-    };
+      const newMatch = {
+        id: `m${Date.now()}`,
+        date: parsedResult.date || new Date().toISOString().split('T')[0],
+        time: getCurrentTime(),
+        court: parsedResult.court || '未知',
+        courtType: parsedResult.courtType || 'hard' as const,
+        matchType: parsedResult.matchType || 'singles' as const,
+        opponentId: opponentPlayer?.id || '',
+        opponent: opponentPlayer?.name || parsedResult.opponent || '未知',
+        partnerId: partnerPlayer?.id,
+        partner: partnerPlayer?.name,
+        scores: parsedResult.scores || [{ mine: 0, opponent: 0 }],
+        result: parsedResult.result || 'lose' as const,
+        duration: parsedResult.duration || 60,
+        weather: 'sunny' as const,
+        eloChange,
+        notes: parsedResult.notes || '',
+        aiSummary: generateAISummary(parsedResult),
+        createdAt: new Date().toISOString()
+      };
 
-    addMatch(newMatch);
+      addMatch(newMatch);
 
-    if (opponentPlayer) {
-      updatePlayerAfterMatch(opponentPlayer.id, newMatch.result, eloChange);
+      if (opponentPlayer) {
+        updatePlayerAfterMatch(opponentPlayer.id, newMatch.result, eloChange);
+      }
+      if (partnerPlayer && newMatch.matchType === 'doubles') {
+        updatePlayerAfterMatch(partnerPlayer.id, newMatch.result, eloChange > 0 ? 8 : -5);
+      }
+
+      recalculateRelationships();
+      setParsedResult(null);
+
+      const confirmMsg: ChatMessage = {
+        id: (Date.now() + 2).toString(),
+        content: `✅ 比赛已保存！\n\n${newMatch.aiSummary}\n\n${opponentPlayer ? `📋 ${opponentPlayer.name}的档案已更新（Elo ${opponentPlayer.elo + eloChange}）` : '💡 下次输入对手姓名可自动关联球友档案'}`,
+        isUser: false,
+        time: getCurrentTime()
+      };
+      setMessages((prev) => [...prev, confirmMsg]);
+
+      Taro.showToast({ title: '保存成功', icon: 'success' });
+    } catch (e) {
+      console.error('[Record] save error:', e);
+      Taro.showToast({ title: '保存失败，请重试', icon: 'none' });
     }
-    if (partnerPlayer && newMatch.matchType === 'doubles') {
-      updatePlayerAfterMatch(partnerPlayer.id, newMatch.result, eloChange > 0 ? 8 : -5);
-    }
-
-    recalculateRelationships();
-    setParsedResult(null);
-
-    const confirmMsg: ChatMessage = {
-      id: (Date.now() + 2).toString(),
-      content: `✅ 比赛已保存！\n\n${newMatch.aiSummary}\n\n${opponentPlayer ? `📋 ${opponentPlayer.name}的档案已更新` : ''}`,
-      isUser: false,
-      time: getCurrentTime()
-    };
-    setMessages((prev) => [...prev, confirmMsg]);
-
-    Taro.showToast({ title: '保存成功', icon: 'success' });
   };
 
   return (
@@ -186,9 +199,7 @@ const RecordPage: React.FC = () => {
                 <Text className={styles.parsedValue}>{courtTypeMap[parsedResult.courtType]}</Text>
               </View>
             )}
-            <View className={styles.confirmBtn} onClick={handleConfirm}>
-              <Text className={styles.confirmText}>✓ 确认保存</Text>
-            </View>
+            <Button className={styles.confirmBtn} onClick={handleConfirm}>✓ 确认保存</Button>
           </View>
         )}
       </View>
