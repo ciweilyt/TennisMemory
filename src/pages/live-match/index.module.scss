@@ -62,17 +62,34 @@
   box-sizing: border-box;
 }
 
+.formInputFlex {
+  flex: 1;
+  height: 80rpx;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  padding: 0 $spacing-lg;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  box-sizing: border-box;
+}
+
 .inputWithAction {
   display: flex;
   align-items: center;
   gap: $spacing-sm;
 }
 
-.pickBtn {
+.pickBtnWrap {
   flex-shrink: 0;
-  padding: 16rpx 24rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  padding: 0 24rpx;
   border-radius: $radius-md;
   background: rgba($color-primary, 0.1);
+  box-sizing: border-box;
+}
+
+.pickBtnText {
   font-size: $font-size-sm;
   color: $color-primary;
   font-weight: $font-weight-medium;
@@ -93,6 +110,32 @@
 .pickerArrow {
   font-size: $font-size-lg;
   color: $color-text-disabled;
+}
+
+.toggleRow {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.toggleOn {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  border-radius: $radius-md;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-white;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+}
+
+.toggleOff {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  border-radius: $radius-md;
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  background: $color-bg-page;
 }
 
 .startBtn {
@@ -118,6 +161,7 @@
   align-items: center;
   padding: $spacing-md $page-padding;
   padding-bottom: 60rpx;
+  position: relative;
 }
 
 .matchInfo {
@@ -290,8 +334,8 @@
   box-shadow: 0 4rpx 16rpx rgba($color-primary, 0.3);
 
   &:active {
-    opacity: 0.9;
-    transform: scale(0.97);
+    opacity: 0.85;
+    transform: scale(0.95);
   }
 }
 
@@ -307,8 +351,8 @@
   box-shadow: $shadow-card;
 
   &:active {
-    opacity: 0.9;
-    transform: scale(0.97);
+    opacity: 0.85;
+    transform: scale(0.95);
   }
 }
 
@@ -370,10 +414,106 @@
   width: 100%;
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 
 .timerText {
   font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.timerBlink {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+  animation: timerPulse 0.3s ease-out;
+}
+
+@keyframes timerPulse {
+  0% { transform: scale(1.3); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.countdownArea {
+  display: flex;
+  align-items: baseline;
+  gap: 4rpx;
+}
+
+.countdownNormal {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+}
+
+.countdownWarn {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: #F5A623;
+  animation: countdownBlink 1s infinite;
+}
+
+.countdownUp {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: #F53F3F;
+  animation: countdownBlink 0.5s infinite;
+}
+
+@keyframes countdownBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.timerSub {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.timeUpOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.timeUpCard {
+  background: $color-bg-card;
+  border-radius: $radius-xl;
+  padding: $spacing-xl $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.2);
+  width: 80%;
+}
+
+.timeUpEmoji {
+  font-size: 80rpx;
+  margin-bottom: $spacing-md;
+}
+
+.timeUpTitle {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: #F53F3F;
+  margin-bottom: $spacing-sm;
+}
+
+.timeUpDesc {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-lg;
+}
+
+.timeUpHint {
+  font-size: $font-size-xs;
   color: $color-text-tertiary;
 }
 

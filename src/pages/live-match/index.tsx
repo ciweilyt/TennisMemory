@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, Input, Textarea, Picker, Button } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { MatchType, CourtType, MatchResult, SetScore } from '@/types/match';
@@ -38,6 +38,8 @@ const courtTypeOptions = ['硬地', '红土', '草地'];
 const courtTypeKeys: CourtType[] = ['hard', 'clay', 'grass'];
 const matchTypeOptions = ['单打', '双打'];
 const matchTypeKeys: MatchType[] = ['singles', 'doubles'];
+const timeLimitOptions = ['不限时', '30分钟', '45分钟', '60分钟', '90分钟', '120分钟'];
+const timeLimitValues = [0, 30, 45, 60, 90, 120];
 
 const LiveMatchPage: React.FC = () => {
   const addMatch = useMatchStore((state) => state.addMatch);
@@ -53,6 +55,8 @@ const LiveMatchPage: React.FC = () => {
   const [setupMatchType, setSetupMatchType] = useState(0);
   const [setupCourtType, setSetupCourtType] = useState(0);
   const [setupCourt, setSetupCourt] = useState('');
+  const [setupIsGolden, setSetupIsGolden] = useState(false);
+  const [setupTimeLimit, setSetupTimeLimit] = useState(0);
 
   const [point, setPoint] = useState<PointState>({ mine: 0, opponent: 0 });
   const [game, setGame] = useState<GameState>({ mine: 0, opponent: 0 });
@@ -64,7 +68,15 @@ const LiveMatchPage: React.FC = () => {
 
   const [startTime, setStartTime] = useState<number>(0);
   const [elapsedMin, setElapsedMin] = useState(0);
+  const [elapsedSec, setElapsedSec] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [timerBlink, setTimerBlink] = useState(false);
+
+  const [timeLimitMin, setTimeLimitMin] = useState(0);
+  const [remainingSec, setRemainingSec] = useState(0);
+  const [timeUpAlerted, setTimeUpAlerted] = useState(false);
+  const [showTimeUp, setShowTimeUp] = useState(false);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [endNotes, setEndNotes] = useState('');
 
@@ -93,6 +105,25 @@ const LiveMatchPage: React.FC = () => {
     return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
   };
 
+  const vibrate = useCallback(() => {
+    try {
+      Taro.vibrateShort({ type: 'light' });
+    } catch {}
+  }, []);
+
+  const vibrateHeavy = useCallback(() => {
+    try {
+      Taro.vibrateLong();
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, []);
+
   const pushHistory = useCallback(() => {
     setHistory(prev => [...prev, {
       point: { ...point },
@@ -107,9 +138,40 @@ const LiveMatchPage: React.FC = () => {
   const startTimer = () => {
     const now = Date.now();
     setStartTime(now);
+    setTimerBlink(true);
+    setTimeout(() => setTimerBlink(false), 300);
+
     timerRef.current = setInterval(() => {
-      setElapsedMin(Math.floor((Date.now() - now) / 60000));
-    }, 10000);
+      const elapsed = Date.now() - now;
+      setElapsedMin(Math.floor(elapsed / 60000));
+      setElapsedSec(Math.floor(elapsed / 1000) % 60);
+    }, 1000);
+
+    const limitMin = timeLimitValues[setupTimeLimit];
+    if (limitMin > 0) {
+      setTimeLimitMin(limitMin);
+      const totalSec = limitMin * 60;
+      setRemainingSec(totalSec);
+      setTimeUpAlerted(false);
+      setShowTimeUp(false);
+
+      countdownRef.current = setInterval(() => {
+        setRemainingSec(prev => {
+          if (prev <= 1) {
+            if (countdownRef.current) clearInterval(countdownRef.current);
+            if (!timeUpAlerted) {
+              setTimeUpAlerted(true);
+              setShowTimeUp(true);
+              vibrateHeavy();
+              setTimeout(() => vibrateHeavy(), 500);
+              setTimeout(() => vibrateHeavy(), 1000);
+            }
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
   };
 
   const stopTimer = () => {
@@ -117,6 +179,16 @@ const LiveMatchPage: React.FC = () => {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+    const elapsed = Math.floor((Date.now() - startTime) / 60000);
+    setElapsedMin(elapsed);
+  };
+
+  const dismissTimeUp = () => {
+    setShowTimeUp(false);
   };
 
   const handleStart = () => {
@@ -137,6 +209,7 @@ const LiveMatchPage: React.FC = () => {
 
   const handlePoint = (side: 'mine' | 'opponent') => {
     if (matchEnded) return;
+    vibrate();
     pushHistory();
 
     if (isTiebreak) {
@@ -146,6 +219,11 @@ const LiveMatchPage: React.FC = () => {
 
     const newPoint = { ...point };
     newPoint[side] += 1;
+
+    if (setupIsGolden && newPoint.mine >= 3 && newPoint.opponent >= 3) {
+      winGame(side);
+      return;
+    }
 
     if (newPoint.mine >= 3 && newPoint.opponent >= 3) {
       if (newPoint.mine === newPoint.opponent) {
@@ -355,6 +433,14 @@ const LiveMatchPage: React.FC = () => {
     return POINT_DISPLAY[val] || '0';
   };
 
+  const formatCountdown = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const isTimeUp = remainingSec <= 0 && timeLimitMin > 0;
+
   const renderSetup = () => (
     <View className={styles.setupArea}>
       <View className={styles.setupCard}>
@@ -363,10 +449,12 @@ const LiveMatchPage: React.FC = () => {
         <View className={styles.formGroup}>
           <Text className={styles.formLabel}>对手 *</Text>
           <View className={styles.inputWithAction}>
-            <Input className={styles.formInput} value={setupOpponent} onInput={(e) => setSetupOpponent(e.detail.value)} placeholder="输入对手姓名" maxlength={20} />
+            <Input className={styles.formInputFlex} value={setupOpponent} onInput={(e) => setSetupOpponent(e.detail.value)} placeholder="输入对手姓名" maxlength={20} />
             {players.length > 0 && (
               <Picker mode="selector" range={players.map(p => p.name)} onChange={handleOpponentPick}>
-                <Text className={styles.pickBtn}>选择</Text>
+                <View className={styles.pickBtnWrap}>
+                  <Text className={styles.pickBtnText}>选择</Text>
+                </View>
               </Picker>
             )}
           </View>
@@ -403,6 +491,30 @@ const LiveMatchPage: React.FC = () => {
           <Text className={styles.formLabel}>场地名称</Text>
           <Input className={styles.formInput} value={setupCourt} onInput={(e) => setSetupCourt(e.detail.value)} placeholder="如 奥体中心" maxlength={30} />
         </View>
+
+        <View className={styles.formGroup}>
+          <Text className={styles.formLabel}>金球制（无占先）</Text>
+          <View className={styles.toggleRow}>
+            <Text
+              className={setupIsGolden ? styles.toggleOff : styles.toggleOn}
+              onClick={() => setSetupIsGolden(false)}
+            >常规</Text>
+            <Text
+              className={setupIsGolden ? styles.toggleOn : styles.toggleOff}
+              onClick={() => setSetupIsGolden(true)}
+            >金球</Text>
+          </View>
+        </View>
+
+        <View className={styles.formGroup}>
+          <Text className={styles.formLabel}>限时赛</Text>
+          <Picker mode="selector" range={timeLimitOptions} value={setupTimeLimit} onChange={(e) => setSetupTimeLimit(Number(e.detail.value))}>
+            <View className={styles.pickerValue}>
+              <Text>{timeLimitOptions[setupTimeLimit]}</Text>
+              <Text className={styles.pickerArrow}>›</Text>
+            </View>
+          </Picker>
+        </View>
       </View>
 
       <Button className={styles.startBtn} onClick={handleStart}>🎾 开始比赛</Button>
@@ -414,6 +526,7 @@ const LiveMatchPage: React.FC = () => {
       <View className={styles.matchInfo}>
         <Text className={styles.matchInfoText}>
           {matchTypeOptions[setupMatchType]} · {courtTypeOptions[setupCourtType]}
+          {setupIsGolden ? ' · 金球' : ''}
           {setupCourt ? ` · ${setupCourt}` : ''}
         </Text>
         <Text className={styles.matchInfoText}>vs {setupOpponent}</Text>
@@ -485,8 +598,30 @@ const LiveMatchPage: React.FC = () => {
       </View>
 
       <View className={styles.timerRow}>
-        <Text className={styles.timerText}>⏱ {elapsedMin} 分钟</Text>
+        {timeLimitMin > 0 ? (
+          <View className={styles.countdownArea}>
+            <Text className={isTimeUp ? styles.countdownUp : (remainingSec <= 60 ? styles.countdownWarn : styles.countdownNormal)}>
+              ⏱ {formatCountdown(remainingSec)}
+            </Text>
+            <Text className={styles.timerSub}> / {timeLimitMin}分钟</Text>
+          </View>
+        ) : (
+          <Text className={timerBlink ? styles.timerBlink : styles.timerText}>
+            ⏱ {elapsedMin}:{elapsedSec.toString().padStart(2, '0')}
+          </Text>
+        )}
       </View>
+
+      {showTimeUp && (
+        <View className={styles.timeUpOverlay} onClick={dismissTimeUp}>
+          <View className={styles.timeUpCard}>
+            <Text className={styles.timeUpEmoji}>⏰</Text>
+            <Text className={styles.timeUpTitle}>时间到！</Text>
+            <Text className={styles.timeUpDesc}>限时赛 {timeLimitMin} 分钟已结束</Text>
+            <Text className={styles.timeUpHint}>点击任意处关闭</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 
@@ -508,7 +643,7 @@ const LiveMatchPage: React.FC = () => {
         </View>
         <View className={styles.detailRow}>
           <Text className={styles.detailLabel}>类型</Text>
-          <Text className={styles.detailValue}>{matchTypeOptions[setupMatchType]}</Text>
+          <Text className={styles.detailValue}>{matchTypeOptions[setupMatchType]}{setupIsGolden ? ' · 金球' : ''}</Text>
         </View>
         <View className={styles.detailRow}>
           <Text className={styles.detailLabel}>场地</Text>

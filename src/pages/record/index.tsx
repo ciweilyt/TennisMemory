@@ -25,8 +25,15 @@ const matchTypeMap: Record<string, string> = { singles: '单打', doubles: '双�
 const matchTypeOptions = ['单打', '双打'];
 const matchTypeKeys: MatchType[] = ['singles', 'doubles'];
 const resultMap: Record<string, string> = { win: '胜利', lose: '失败' };
-const resultOptions = ['胜利', '失败'];
-const resultKeys: MatchResult[] = ['win', 'lose'];
+
+const calcResultFromScores = (scores: SetScore[]): MatchResult => {
+  let won = 0, lost = 0;
+  for (const s of scores) {
+    if (s.mine > s.opponent) won++;
+    else if (s.opponent > s.mine) lost++;
+  }
+  return won >= lost ? 'win' : 'lose';
+};
 
 const RecordPage: React.FC = () => {
   const [mode, setMode] = useState<InputMode>('form');
@@ -54,7 +61,6 @@ const RecordPage: React.FC = () => {
   const [formMatchType, setFormMatchType] = useState(0);
   const [formCourtType, setFormCourtType] = useState(0);
   const [formCourt, setFormCourt] = useState('');
-  const [formResult, setFormResult] = useState(0);
   const [formScore1Mine, setFormScore1Mine] = useState('');
   const [formScore1Opp, setFormScore1Opp] = useState('');
   const [formScore2Mine, setFormScore2Mine] = useState('');
@@ -67,9 +73,19 @@ const RecordPage: React.FC = () => {
   const [formIsGolden, setFormIsGolden] = useState(false);
   const [formNotes, setFormNotes] = useState('');
 
+  const [autoResult, setAutoResult] = useState<MatchResult | null>(null);
+
   const getCurrentTime = () => {
     const now = new Date();
     return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+  };
+
+  const updateAutoResult = (scores: SetScore[]) => {
+    if (scores.length > 0) {
+      setAutoResult(calcResultFromScores(scores));
+    } else {
+      setAutoResult(null);
+    }
   };
 
   const saveMatch = (opponentName: string, partnerName: string | undefined, matchType: MatchType, courtType: CourtType, court: string, result: MatchResult, scores: SetScore[], duration: number, notes: string, date?: string, time?: string) => {
@@ -187,13 +203,14 @@ const RecordPage: React.FC = () => {
   const handleAIConfirm = () => {
     if (!parsedResult) return;
     const scores = parsedResult.scores || [{ mine: 0, opponent: 0 }];
+    const result = scores.length > 0 ? calcResultFromScores(scores) : (parsedResult.result || 'lose');
     const ok = saveMatch(
       parsedResult.opponent || '',
       parsedResult.partner,
       parsedResult.matchType || 'singles',
       parsedResult.courtType || 'hard',
       parsedResult.court || '',
-      parsedResult.result || 'lose',
+      result,
       scores,
       parsedResult.duration || 60,
       parsedResult.notes || ''
@@ -210,6 +227,22 @@ const RecordPage: React.FC = () => {
     }
   };
 
+  const collectScores = (): SetScore[] => {
+    const scores: SetScore[] = [];
+    const s1m = parseInt(formScore1Mine), s1o = parseInt(formScore1Opp);
+    const s2m = parseInt(formScore2Mine), s2o = parseInt(formScore2Opp);
+    const s3m = parseInt(formScore3Mine), s3o = parseInt(formScore3Opp);
+    if (!isNaN(s1m) && !isNaN(s1o)) scores.push({ mine: s1m, opponent: s1o });
+    if (!isNaN(s2m) && !isNaN(s2o)) scores.push({ mine: s2m, opponent: s2o });
+    if (!isNaN(s3m) && !isNaN(s3o)) scores.push({ mine: s3m, opponent: s3o });
+    return scores;
+  };
+
+  const onScoreChange = () => {
+    const scores = collectScores();
+    updateAutoResult(scores);
+  };
+
   const handleFormSave = () => {
     const opponent = formOpponent.trim();
     if (!opponent) {
@@ -217,15 +250,7 @@ const RecordPage: React.FC = () => {
       return;
     }
 
-    const scores: SetScore[] = [];
-    const s1m = parseInt(formScore1Mine), s1o = parseInt(formScore1Opp);
-    const s2m = parseInt(formScore2Mine), s2o = parseInt(formScore2Opp);
-    const s3m = parseInt(formScore3Mine), s3o = parseInt(formScore3Opp);
-
-    if (!isNaN(s1m) && !isNaN(s1o)) scores.push({ mine: s1m, opponent: s1o });
-    if (!isNaN(s2m) && !isNaN(s2o)) scores.push({ mine: s2m, opponent: s2o });
-    if (!isNaN(s3m) && !isNaN(s3o)) scores.push({ mine: s3m, opponent: s3o });
-
+    const scores = collectScores();
     if (scores.length === 0) {
       Taro.showToast({ title: '请至少填写第一盘比分', icon: 'none' });
       return;
@@ -233,7 +258,7 @@ const RecordPage: React.FC = () => {
 
     const matchType = matchTypeKeys[formMatchType];
     const courtType = courtTypeKeys[formCourtType];
-    const result = resultKeys[formResult];
+    const result = calcResultFromScores(scores);
     const duration = parseInt(formDuration) || 60;
     const matchDate = formDate || undefined;
     const matchTime = formTime.trim() || undefined;
@@ -258,7 +283,6 @@ const RecordPage: React.FC = () => {
       setFormMatchType(0);
       setFormCourtType(0);
       setFormCourt('');
-      setFormResult(0);
       setFormScore1Mine('');
       setFormScore1Opp('');
       setFormScore2Mine('');
@@ -270,6 +294,7 @@ const RecordPage: React.FC = () => {
       setFormTime('');
       setFormIsGolden(false);
       setFormNotes('');
+      setAutoResult(null);
     }
   };
 
@@ -361,7 +386,9 @@ const RecordPage: React.FC = () => {
                 <Input className={styles.formInputFlex} value={formOpponent} onInput={(e) => setFormOpponent(e.detail.value)} placeholder="输入对手姓名" maxlength={20} />
                 {players.length > 0 && (
                   <Picker mode="selector" range={players.map(p => p.name)} onChange={handleOpponentPick}>
-                    <Text className={styles.pickBtn}>选择</Text>
+                    <View className={styles.pickBtnWrap}>
+                      <Text className={styles.pickBtnText}>选择</Text>
+                    </View>
                   </Picker>
                 )}
               </View>
@@ -397,16 +424,6 @@ const RecordPage: React.FC = () => {
             <View className={styles.formGroup}>
               <Text className={styles.formLabel}>场地名称</Text>
               <Input className={styles.formInput} value={formCourt} onInput={(e) => setFormCourt(e.detail.value)} placeholder="如 奥体中心" maxlength={30} />
-            </View>
-
-            <View className={styles.formGroup}>
-              <Text className={styles.formLabel}>结果</Text>
-              <Picker mode="selector" range={resultOptions} value={formResult} onChange={(e) => setFormResult(Number(e.detail.value))}>
-                <View className={styles.pickerValue}>
-                  <Text>{resultOptions[formResult]}</Text>
-                  <Text className={styles.pickerArrow}>›</Text>
-                </View>
-              </Picker>
             </View>
 
             <View className={styles.formGroup}>
@@ -449,24 +466,33 @@ const RecordPage: React.FC = () => {
 
             <View className={styles.scoreRow}>
               <Text className={styles.scoreLabel}>第一盘</Text>
-              <Input className={styles.scoreInput} value={formScore1Mine} onInput={(e) => setFormScore1Mine(e.detail.value)} placeholder="我" type="number" maxlength={2} />
+              <Input className={styles.scoreInput} value={formScore1Mine} onInput={(e) => { setFormScore1Mine(e.detail.value); setTimeout(onScoreChange, 0); }} placeholder="我" type="number" maxlength={2} />
               <Text className={styles.scoreColon}>:</Text>
-              <Input className={styles.scoreInput} value={formScore1Opp} onInput={(e) => setFormScore1Opp(e.detail.value)} placeholder="对手" type="number" maxlength={2} />
+              <Input className={styles.scoreInput} value={formScore1Opp} onInput={(e) => { setFormScore1Opp(e.detail.value); setTimeout(onScoreChange, 0); }} placeholder="对手" type="number" maxlength={2} />
             </View>
 
             <View className={styles.scoreRow}>
               <Text className={styles.scoreLabel}>第二盘</Text>
-              <Input className={styles.scoreInput} value={formScore2Mine} onInput={(e) => setFormScore2Mine(e.detail.value)} placeholder="我" type="number" maxlength={2} />
+              <Input className={styles.scoreInput} value={formScore2Mine} onInput={(e) => { setFormScore2Mine(e.detail.value); setTimeout(onScoreChange, 0); }} placeholder="我" type="number" maxlength={2} />
               <Text className={styles.scoreColon}>:</Text>
-              <Input className={styles.scoreInput} value={formScore2Opp} onInput={(e) => setFormScore2Opp(e.detail.value)} placeholder="对手" type="number" maxlength={2} />
+              <Input className={styles.scoreInput} value={formScore2Opp} onInput={(e) => { setFormScore2Opp(e.detail.value); setTimeout(onScoreChange, 0); }} placeholder="对手" type="number" maxlength={2} />
             </View>
 
             <View className={styles.scoreRow}>
               <Text className={styles.scoreLabel}>第三盘</Text>
-              <Input className={styles.scoreInput} value={formScore3Mine} onInput={(e) => setFormScore3Mine(e.detail.value)} placeholder="我" type="number" maxlength={2} />
+              <Input className={styles.scoreInput} value={formScore3Mine} onInput={(e) => { setFormScore3Mine(e.detail.value); setTimeout(onScoreChange, 0); }} placeholder="我" type="number" maxlength={2} />
               <Text className={styles.scoreColon}>:</Text>
-              <Input className={styles.scoreInput} value={formScore3Opp} onInput={(e) => setFormScore3Opp(e.detail.value)} placeholder="对手" type="number" maxlength={2} />
+              <Input className={styles.scoreInput} value={formScore3Opp} onInput={(e) => { setFormScore3Opp(e.detail.value); setTimeout(onScoreChange, 0); }} placeholder="对手" type="number" maxlength={2} />
             </View>
+
+            {autoResult && (
+              <View className={styles.autoResultRow}>
+                <Text className={styles.autoResultLabel}>自动判定</Text>
+                <Text className={autoResult === 'win' ? styles.autoResultWin : styles.autoResultLose}>
+                  {autoResult === 'win' ? '✅ 胜利' : '❌ 失败'}
+                </Text>
+              </View>
+            )}
           </View>
 
           <View className={styles.formCard}>
