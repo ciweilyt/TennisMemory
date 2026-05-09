@@ -7,6 +7,35 @@
   background: $color-bg-page;
 }
 
+.modeTabs {
+  display: flex;
+  background: $color-bg-card;
+  padding: $spacing-sm $page-padding;
+  gap: $spacing-sm;
+  box-shadow: $shadow-card;
+}
+
+.modeTab {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  border-radius: $radius-md;
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  background: $color-bg-page;
+}
+
+.modeTabActive {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  border-radius: $radius-md;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-white;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+}
+
 .chatArea {
   flex: 1;
   padding: $spacing-lg $page-padding;
@@ -45,37 +74,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all $transition-base;
-
-  &:active {
-    opacity: 0.9;
-    transform: scale(0.95);
-  }
 }
 
 .sendText {
   font-size: $font-size-lg;
   color: $color-text-white;
-}
-
-.voiceBtn {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: $radius-round;
-  background: $color-bg-page;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all $transition-base;
-
-  &:active {
-    opacity: 0.9;
-    transform: scale(0.95);
-  }
-}
-
-.voiceText {
-  font-size: $font-size-lg;
 }
 
 .parsedCard {
@@ -130,23 +133,148 @@
   }
 }
 
-.hintCard {
+.formArea {
+  flex: 1;
+  padding: $spacing-lg $page-padding;
+  padding-bottom: 200rpx;
+  overflow-y: auto;
+}
+
+.formCard {
   background: $color-bg-card;
   border-radius: $radius-lg;
   padding: $spacing-lg;
-  margin: $spacing-md 0;
   box-shadow: $shadow-card;
+  margin-bottom: $spacing-md;
 }
 
-.hintTitle {
+.formTitle {
   font-size: $font-size-md;
   font-weight: $font-weight-semibold;
   color: $color-text-primary;
-  margin-bottom: $spacing-sm;
+  margin-bottom: $spacing-lg;
 }
 
-.hintText {
+.formGroup {
+  margin-bottom: $spacing-lg;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.formLabel {
   font-size: $font-size-sm;
   color: $color-text-secondary;
-  line-height: $line-height-loose;
+  margin-bottom: $spacing-sm;
+  display: block;
+}
+
+.formInput {
+  width: 100%;
+  height: 80rpx;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  padding: 0 $spacing-lg;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  box-sizing: border-box;
+}
+
+.inputWithAction {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.pickBtn {
+  flex-shrink: 0;
+  padding: 16rpx 24rpx;
+  border-radius: $radius-md;
+  background: rgba($color-primary, 0.1);
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
+.pickerValue {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 80rpx;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  padding: 0 $spacing-lg;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+}
+
+.pickerArrow {
+  font-size: $font-size-lg;
+  color: $color-text-disabled;
+}
+
+.scoreRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.scoreLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  width: 120rpx;
+  flex-shrink: 0;
+}
+
+.scoreInput {
+  width: 120rpx;
+  height: 72rpx;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  padding: 0 $spacing-md;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.scoreColon {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+}
+
+.formTextarea {
+  width: 100%;
+  height: 160rpx;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  padding: $spacing-md $spacing-lg;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  box-sizing: border-box;
+}
+
+.formSaveBtn {
+  width: 100% !important;
+  height: $button-height-lg !important;
+  line-height: $button-height-lg !important;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%) !important;
+  border-radius: $radius-button !important;
+  margin-top: $spacing-lg;
+  font-size: $font-size-lg !important;
+  font-weight: $font-weight-medium !important;
+  color: $color-text-white !important;
+  border: none !important;
+  padding: 0 !important;
+
+  &::after {
+    border: none !important;
+  }
 }

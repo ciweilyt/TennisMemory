@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, Input, Button } from '@tarojs/components';
+import { View, Text, Input, Textarea, Picker, Button } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import ChatBubble from '@/components/ChatBubble';
 import { parseMatchInput, generateAISummary } from '@/utils/aiParser';
-import { ParsedMatchInput } from '@/types/match';
+import { ParsedMatchInput, MatchType, CourtType, MatchResult, SetScore } from '@/types/match';
 import { useMatchStore } from '@/store/useMatchStore';
 import { usePlayerStore } from '@/store/usePlayerStore';
 import styles from './index.module.scss';
+
+type InputMode = 'ai' | 'form';
 
 interface ChatMessage {
   id: string;
@@ -16,29 +18,121 @@ interface ChatMessage {
 }
 
 const courtTypeMap: Record<string, string> = { hard: '硬地', clay: '红土', grass: '草地' };
+const courtTypeOptions = ['硬地', '红土', '草地'];
+const courtTypeKeys: CourtType[] = ['hard', 'clay', 'grass'];
 const matchTypeMap: Record<string, string> = { singles: '单打', doubles: '双打' };
+const matchTypeOptions = ['单打', '双打'];
+const matchTypeKeys: MatchType[] = ['singles', 'doubles'];
 const resultMap: Record<string, string> = { win: '胜利', lose: '失败' };
+const resultOptions = ['胜利', '失败'];
+const resultKeys: MatchResult[] = ['win', 'lose'];
 
 const RecordPage: React.FC = () => {
-  const [inputValue, setInputValue] = useState('');
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: '0',
-      content: '嗨！告诉我你今天的比赛情况吧 🎾\n\n比如："和Kevin打了两个小时，6:3输了，发球状态很差"\n\n我会自动识别球友并更新TA的档案哦~',
-      isUser: false,
-      time: ''
-    }
-  ]);
-  const [parsedResult, setParsedResult] = useState<ParsedMatchInput | null>(null);
+  const [mode, setMode] = useState<InputMode>('form');
+
   const addMatch = useMatchStore((state) => state.addMatch);
   const findOrCreatePlayer = usePlayerStore((state) => state.findOrCreatePlayer);
   const updatePlayerAfterMatch = usePlayerStore((state) => state.updatePlayerAfterMatch);
   const recalculateRelationships = usePlayerStore((state) => state.recalculateRelationships);
   const getPlayerByName = usePlayerStore((state) => state.getPlayerByName);
+  const players = usePlayerStore((state) => state.players);
+
+  const [inputValue, setInputValue] = useState('');
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      id: '0',
+      content: '嗨！告诉我你今天的比赛情况吧 🎾\n\n比如："和Kevin打了两个小时，6:3输了，发球状态很差"',
+      isUser: false,
+      time: ''
+    }
+  ]);
+  const [parsedResult, setParsedResult] = useState<ParsedMatchInput | null>(null);
+
+  const [formOpponent, setFormOpponent] = useState('');
+  const [formPartner, setFormPartner] = useState('');
+  const [formMatchType, setFormMatchType] = useState(0);
+  const [formCourtType, setFormCourtType] = useState(0);
+  const [formCourt, setFormCourt] = useState('');
+  const [formResult, setFormResult] = useState(0);
+  const [formScore1Mine, setFormScore1Mine] = useState('');
+  const [formScore1Opp, setFormScore1Opp] = useState('');
+  const [formScore2Mine, setFormScore2Mine] = useState('');
+  const [formScore2Opp, setFormScore2Opp] = useState('');
+  const [formScore3Mine, setFormScore3Mine] = useState('');
+  const [formScore3Opp, setFormScore3Opp] = useState('');
+  const [formDuration, setFormDuration] = useState('');
+  const [formNotes, setFormNotes] = useState('');
 
   const getCurrentTime = () => {
     const now = new Date();
     return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+  };
+
+  const saveMatch = (opponentName: string, partnerName: string | undefined, matchType: MatchType, courtType: CourtType, court: string, result: MatchResult, scores: SetScore[], duration: number, notes: string) => {
+    try {
+      let opponentPlayer = null;
+      if (opponentName) {
+        opponentPlayer = findOrCreatePlayer(opponentName);
+      }
+
+      let partnerPlayer = null;
+      if (partnerName && matchType === 'doubles') {
+        partnerPlayer = findOrCreatePlayer(partnerName);
+      }
+
+      const eloChange = result === 'win' ? 12 : -8;
+
+      const newMatch = {
+        id: `m${Date.now()}`,
+        date: new Date().toISOString().split('T')[0],
+        time: getCurrentTime(),
+        court: court || '未知',
+        courtType,
+        matchType,
+        opponentId: opponentPlayer?.id || '',
+        opponent: opponentPlayer?.name || opponentName || '未知',
+        partnerId: partnerPlayer?.id,
+        partner: partnerPlayer?.name,
+        scores,
+        result,
+        duration,
+        weather: 'sunny' as const,
+        eloChange,
+        notes,
+        aiSummary: '',
+        createdAt: new Date().toISOString()
+      };
+
+      const parsedForSummary: ParsedMatchInput = {
+        opponent: opponentName,
+        partner: partnerName,
+        matchType,
+        courtType,
+        court,
+        scores,
+        result,
+        duration,
+        notes
+      };
+      newMatch.aiSummary = generateAISummary(parsedForSummary);
+
+      addMatch(newMatch);
+
+      if (opponentPlayer) {
+        updatePlayerAfterMatch(opponentPlayer.id, result, eloChange);
+      }
+      if (partnerPlayer) {
+        updatePlayerAfterMatch(partnerPlayer.id, result, eloChange > 0 ? 8 : -5);
+      }
+
+      recalculateRelationships();
+      Taro.showToast({ title: '保存成功', icon: 'success' });
+      return true;
+    } catch (e) {
+      console.error('[Record] save error:', e);
+      Taro.showToast({ title: '保存失败，请重试', icon: 'none' });
+      return false;
+    }
   };
 
   const handleSend = () => {
@@ -81,147 +175,260 @@ const RecordPage: React.FC = () => {
     if (parsed.courtType) parts.push(`🏟️ 场地：${courtTypeMap[parsed.courtType]}`);
     if (parsed.court) parts.push(`📍 地点：${parsed.court}`);
     if (parsed.duration) parts.push(`⏱️ 时长：${Math.floor(parsed.duration / 60)}小时`);
-    if (parsed.mood) parts.push(`😊 状态：${parsed.mood === 'good' ? '良好' : parsed.mood === 'bad' ? '不佳' : '一般'}`);
     if (parsed.techIssue) parts.push(`⚠️ 问题：${parsed.techIssue}`);
     parts.push('\n保存后将自动更新球友档案 ✨');
     return parts.join('\n');
   };
 
-  const handleConfirm = () => {
+  const handleAIConfirm = () => {
     if (!parsedResult) return;
-
-    try {
-      let opponentPlayer = null;
-      if (parsedResult.opponent) {
-        opponentPlayer = findOrCreatePlayer(parsedResult.opponent);
-      }
-
-      let partnerPlayer = null;
-      if (parsedResult.partner) {
-        partnerPlayer = findOrCreatePlayer(parsedResult.partner);
-      }
-
-      const eloChange = parsedResult.result === 'win' ? 12 : -8;
-
-      const newMatch = {
-        id: `m${Date.now()}`,
-        date: parsedResult.date || new Date().toISOString().split('T')[0],
-        time: getCurrentTime(),
-        court: parsedResult.court || '未知',
-        courtType: parsedResult.courtType || 'hard' as const,
-        matchType: parsedResult.matchType || 'singles' as const,
-        opponentId: opponentPlayer?.id || '',
-        opponent: opponentPlayer?.name || parsedResult.opponent || '未知',
-        partnerId: partnerPlayer?.id,
-        partner: partnerPlayer?.name,
-        scores: parsedResult.scores || [{ mine: 0, opponent: 0 }],
-        result: parsedResult.result || 'lose' as const,
-        duration: parsedResult.duration || 60,
-        weather: 'sunny' as const,
-        eloChange,
-        notes: parsedResult.notes || '',
-        aiSummary: generateAISummary(parsedResult),
-        createdAt: new Date().toISOString()
-      };
-
-      addMatch(newMatch);
-
-      if (opponentPlayer) {
-        updatePlayerAfterMatch(opponentPlayer.id, newMatch.result, eloChange);
-      }
-      if (partnerPlayer && newMatch.matchType === 'doubles') {
-        updatePlayerAfterMatch(partnerPlayer.id, newMatch.result, eloChange > 0 ? 8 : -5);
-      }
-
-      recalculateRelationships();
+    const scores = parsedResult.scores || [{ mine: 0, opponent: 0 }];
+    const ok = saveMatch(
+      parsedResult.opponent || '',
+      parsedResult.partner,
+      parsedResult.matchType || 'singles',
+      parsedResult.courtType || 'hard',
+      parsedResult.court || '',
+      parsedResult.result || 'lose',
+      scores,
+      parsedResult.duration || 60,
+      parsedResult.notes || ''
+    );
+    if (ok) {
       setParsedResult(null);
-
       const confirmMsg: ChatMessage = {
         id: (Date.now() + 2).toString(),
-        content: `✅ 比赛已保存！\n\n${newMatch.aiSummary}\n\n${opponentPlayer ? `📋 ${opponentPlayer.name}的档案已更新（Elo ${opponentPlayer.elo + eloChange}）` : '💡 下次输入对手姓名可自动关联球友档案'}`,
+        content: `✅ 比赛已保存！\n\n${generateAISummary(parsedResult)}`,
         isUser: false,
         time: getCurrentTime()
       };
       setMessages((prev) => [...prev, confirmMsg]);
+    }
+  };
 
-      Taro.showToast({ title: '保存成功', icon: 'success' });
-    } catch (e) {
-      console.error('[Record] save error:', e);
-      Taro.showToast({ title: '保存失败，请重试', icon: 'none' });
+  const handleFormSave = () => {
+    const opponent = formOpponent.trim();
+    if (!opponent) {
+      Taro.showToast({ title: '请输入对手姓名', icon: 'none' });
+      return;
+    }
+
+    const scores: SetScore[] = [];
+    const s1m = parseInt(formScore1Mine), s1o = parseInt(formScore1Opp);
+    const s2m = parseInt(formScore2Mine), s2o = parseInt(formScore2Opp);
+    const s3m = parseInt(formScore3Mine), s3o = parseInt(formScore3Opp);
+
+    if (!isNaN(s1m) && !isNaN(s1o)) scores.push({ mine: s1m, opponent: s1o });
+    if (!isNaN(s2m) && !isNaN(s2o)) scores.push({ mine: s2m, opponent: s2o });
+    if (!isNaN(s3m) && !isNaN(s3o)) scores.push({ mine: s3m, opponent: s3o });
+
+    if (scores.length === 0) {
+      Taro.showToast({ title: '请至少填写第一盘比分', icon: 'none' });
+      return;
+    }
+
+    const matchType = matchTypeKeys[formMatchType];
+    const courtType = courtTypeKeys[formCourtType];
+    const result = resultKeys[formResult];
+    const duration = parseInt(formDuration) || 60;
+
+    const ok = saveMatch(
+      opponent,
+      matchType === 'doubles' ? formPartner.trim() : undefined,
+      matchType,
+      courtType,
+      formCourt.trim(),
+      result,
+      scores,
+      duration,
+      formNotes.trim()
+    );
+
+    if (ok) {
+      setFormOpponent('');
+      setFormPartner('');
+      setFormMatchType(0);
+      setFormCourtType(0);
+      setFormCourt('');
+      setFormResult(0);
+      setFormScore1Mine('');
+      setFormScore1Opp('');
+      setFormScore2Mine('');
+      setFormScore2Opp('');
+      setFormScore3Mine('');
+      setFormScore3Opp('');
+      setFormDuration('');
+      setFormNotes('');
+    }
+  };
+
+  const handleOpponentPick = (e) => {
+    const idx = e.detail.value;
+    if (idx < players.length) {
+      setFormOpponent(players[idx].name);
     }
   };
 
   return (
     <View className={styles.container}>
-      <View className={styles.chatArea}>
-        {messages.map((msg) => (
-          <ChatBubble key={msg.id} content={msg.content} isUser={msg.isUser} time={msg.time} />
-        ))}
-
-        {parsedResult && (
-          <View className={styles.parsedCard}>
-            <Text className={styles.parsedTitle}>📋 解析结果</Text>
-            {parsedResult.opponent && (
-              <View className={styles.parsedRow}>
-                <Text className={styles.parsedLabel}>对手</Text>
-                <Text className={styles.parsedValue}>{parsedResult.opponent}</Text>
-              </View>
-            )}
-            {parsedResult.partner && (
-              <View className={styles.parsedRow}>
-                <Text className={styles.parsedLabel}>搭档</Text>
-                <Text className={styles.parsedValue}>{parsedResult.partner}</Text>
-              </View>
-            )}
-            {parsedResult.matchType && (
-              <View className={styles.parsedRow}>
-                <Text className={styles.parsedLabel}>类型</Text>
-                <Text className={styles.parsedValue}>{matchTypeMap[parsedResult.matchType]}</Text>
-              </View>
-            )}
-            {parsedResult.scores && (
-              <View className={styles.parsedRow}>
-                <Text className={styles.parsedLabel}>比分</Text>
-                <Text className={styles.parsedValue}>
-                  {parsedResult.scores.map(s => `${s.mine}:${s.opponent}`).join(' ')}
-                </Text>
-              </View>
-            )}
-            {parsedResult.result && (
-              <View className={styles.parsedRow}>
-                <Text className={styles.parsedLabel}>结果</Text>
-                <Text className={styles.parsedValue}>{resultMap[parsedResult.result]}</Text>
-              </View>
-            )}
-            {parsedResult.courtType && (
-              <View className={styles.parsedRow}>
-                <Text className={styles.parsedLabel}>场地</Text>
-                <Text className={styles.parsedValue}>{courtTypeMap[parsedResult.courtType]}</Text>
-              </View>
-            )}
-            <Button className={styles.confirmBtn} onClick={handleConfirm}>✓ 确认保存</Button>
-          </View>
-        )}
+      <View className={styles.modeTabs}>
+        <Text
+          className={mode === 'form' ? styles.modeTabActive : styles.modeTab}
+          onClick={() => setMode('form')}
+        >📋 填表录入</Text>
+        <Text
+          className={mode === 'ai' ? styles.modeTabActive : styles.modeTab}
+          onClick={() => setMode('ai')}
+        >🤖 AI录入</Text>
       </View>
 
-      <View className={styles.inputArea}>
-        <View className={styles.inputRow}>
-          <View className={styles.voiceBtn}>
-            <Text className={styles.voiceText}>🎤</Text>
+      {mode === 'ai' ? (
+        <>
+          <View className={styles.chatArea}>
+            {messages.map((msg) => (
+              <ChatBubble key={msg.id} content={msg.content} isUser={msg.isUser} time={msg.time} />
+            ))}
+            {parsedResult && (
+              <View className={styles.parsedCard}>
+                <Text className={styles.parsedTitle}>📋 解析结果</Text>
+                {parsedResult.opponent && (
+                  <View className={styles.parsedRow}>
+                    <Text className={styles.parsedLabel}>对手</Text>
+                    <Text className={styles.parsedValue}>{parsedResult.opponent}</Text>
+                  </View>
+                )}
+                {parsedResult.scores && (
+                  <View className={styles.parsedRow}>
+                    <Text className={styles.parsedLabel}>比分</Text>
+                    <Text className={styles.parsedValue}>
+                      {parsedResult.scores.map(s => `${s.mine}:${s.opponent}`).join(' ')}
+                    </Text>
+                  </View>
+                )}
+                {parsedResult.result && (
+                  <View className={styles.parsedRow}>
+                    <Text className={styles.parsedLabel}>结果</Text>
+                    <Text className={styles.parsedValue}>{resultMap[parsedResult.result]}</Text>
+                  </View>
+                )}
+                <Button className={styles.confirmBtn} onClick={handleAIConfirm}>✓ 确认保存</Button>
+              </View>
+            )}
           </View>
-          <Input
-            className={styles.input}
-            placeholder="说说你今天的比赛..."
-            value={inputValue}
-            onInput={(e) => setInputValue(e.detail.value)}
-            onConfirm={handleSend}
-            confirmType="send"
-          />
-          <View className={styles.sendBtn} onClick={handleSend}>
-            <Text className={styles.sendText}>↑</Text>
+          <View className={styles.inputArea}>
+            <View className={styles.inputRow}>
+              <Input
+                className={styles.input}
+                placeholder="说说你今天的比赛..."
+                value={inputValue}
+                onInput={(e) => setInputValue(e.detail.value)}
+                onConfirm={handleSend}
+                confirmType="send"
+              />
+              <View className={styles.sendBtn} onClick={handleSend}>
+                <Text className={styles.sendText}>↑</Text>
+              </View>
+            </View>
           </View>
+        </>
+      ) : (
+        <View className={styles.formArea}>
+          <View className={styles.formCard}>
+            <Text className={styles.formTitle}>🏸 比赛信息</Text>
+
+            <View className={styles.formGroup}>
+              <Text className={styles.formLabel}>对手 *</Text>
+              <View className={styles.inputWithAction}>
+                <Input className={styles.formInput} value={formOpponent} onInput={(e) => setFormOpponent(e.detail.value)} placeholder="输入对手姓名" maxlength={20} />
+                {players.length > 0 && (
+                  <Picker mode="selector" range={players.map(p => p.name)} onChange={handleOpponentPick}>
+                    <Text className={styles.pickBtn}>选择</Text>
+                  </Picker>
+                )}
+              </View>
+            </View>
+
+            {matchTypeKeys[formMatchType] === 'doubles' && (
+              <View className={styles.formGroup}>
+                <Text className={styles.formLabel}>搭档</Text>
+                <Input className={styles.formInput} value={formPartner} onInput={(e) => setFormPartner(e.detail.value)} placeholder="输入搭档姓名" maxlength={20} />
+              </View>
+            )}
+
+            <View className={styles.formGroup}>
+              <Text className={styles.formLabel}>类型</Text>
+              <Picker mode="selector" range={matchTypeOptions} value={formMatchType} onChange={(e) => setFormMatchType(Number(e.detail.value))}>
+                <View className={styles.pickerValue}>
+                  <Text>{matchTypeOptions[formMatchType]}</Text>
+                  <Text className={styles.pickerArrow}>›</Text>
+                </View>
+              </Picker>
+            </View>
+
+            <View className={styles.formGroup}>
+              <Text className={styles.formLabel}>场地类型</Text>
+              <Picker mode="selector" range={courtTypeOptions} value={formCourtType} onChange={(e) => setFormCourtType(Number(e.detail.value))}>
+                <View className={styles.pickerValue}>
+                  <Text>{courtTypeOptions[formCourtType]}</Text>
+                  <Text className={styles.pickerArrow}>›</Text>
+                </View>
+              </Picker>
+            </View>
+
+            <View className={styles.formGroup}>
+              <Text className={styles.formLabel}>场地名称</Text>
+              <Input className={styles.formInput} value={formCourt} onInput={(e) => setFormCourt(e.detail.value)} placeholder="如 奥体中心" maxlength={30} />
+            </View>
+
+            <View className={styles.formGroup}>
+              <Text className={styles.formLabel}>结果</Text>
+              <Picker mode="selector" range={resultOptions} value={formResult} onChange={(e) => setFormResult(Number(e.detail.value))}>
+                <View className={styles.pickerValue}>
+                  <Text>{resultOptions[formResult]}</Text>
+                  <Text className={styles.pickerArrow}>›</Text>
+                </View>
+              </Picker>
+            </View>
+
+            <View className={styles.formGroup}>
+              <Text className={styles.formLabel}>时长(分钟)</Text>
+              <Input className={styles.formInput} value={formDuration} onInput={(e) => setFormDuration(e.detail.value)} placeholder="如 90" type="number" maxlength={4} />
+            </View>
+          </View>
+
+          <View className={styles.formCard}>
+            <Text className={styles.formTitle}>📊 比分</Text>
+
+            <View className={styles.scoreRow}>
+              <Text className={styles.scoreLabel}>第一盘</Text>
+              <Input className={styles.scoreInput} value={formScore1Mine} onInput={(e) => setFormScore1Mine(e.detail.value)} placeholder="我" type="number" maxlength={2} />
+              <Text className={styles.scoreColon}>:</Text>
+              <Input className={styles.scoreInput} value={formScore1Opp} onInput={(e) => setFormScore1Opp(e.detail.value)} placeholder="对手" type="number" maxlength={2} />
+            </View>
+
+            <View className={styles.scoreRow}>
+              <Text className={styles.scoreLabel}>第二盘</Text>
+              <Input className={styles.scoreInput} value={formScore2Mine} onInput={(e) => setFormScore2Mine(e.detail.value)} placeholder="我" type="number" maxlength={2} />
+              <Text className={styles.scoreColon}>:</Text>
+              <Input className={styles.scoreInput} value={formScore2Opp} onInput={(e) => setFormScore2Opp(e.detail.value)} placeholder="对手" type="number" maxlength={2} />
+            </View>
+
+            <View className={styles.scoreRow}>
+              <Text className={styles.scoreLabel}>第三盘</Text>
+              <Input className={styles.scoreInput} value={formScore3Mine} onInput={(e) => setFormScore3Mine(e.detail.value)} placeholder="我" type="number" maxlength={2} />
+              <Text className={styles.scoreColon}>:</Text>
+              <Input className={styles.scoreInput} value={formScore3Opp} onInput={(e) => setFormScore3Opp(e.detail.value)} placeholder="对手" type="number" maxlength={2} />
+            </View>
+          </View>
+
+          <View className={styles.formCard}>
+            <Text className={styles.formTitle}>📝 备注</Text>
+            <Textarea className={styles.formTextarea} value={formNotes} onInput={(e) => setFormNotes(e.detail.value)} placeholder="记录比赛感受、技术问题等..." maxlength={200} />
+          </View>
+
+          <Button className={styles.formSaveBtn} onClick={handleFormSave}>保存比赛记录</Button>
         </View>
-      </View>
+      )}
     </View>
   );
 };
