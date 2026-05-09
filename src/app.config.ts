@@ -15,6 +15,7 @@ export default defineAppConfig({
     navigationBarTitleText: '网球记忆',
     navigationBarTextStyle: 'white'
   },
+  lazyCodeLoading: 'requiredComponents',
   tabBar: {
     color: '#86909C',
     selectedColor: '#1A6B4C',
