@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, Input, Textarea, Switch } from '@tarojs/components';
+import { View, Text, Input, Textarea, Switch, Button } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { usePlayerStore } from '@/store/usePlayerStore';
 import { Gender, PlayStyle, GENDER_MAP, PLAY_STYLE_MAP } from '@/types/player';
@@ -38,20 +38,25 @@ const PlayerAddPage: React.FC = () => {
       return;
     }
 
-    addPlayer({
-      name: trimmedName,
-      gender,
-      ntrpLevel: ntrpLevel || '3.0',
-      playStyle,
-      isLefty,
-      favoriteCourt,
-      notes,
-      lastPlayDate: '',
-      relationship: 'casual'
-    });
+    try {
+      addPlayer({
+        name: trimmedName,
+        gender,
+        ntrpLevel: ntrpLevel || '3.0',
+        playStyle,
+        isLefty,
+        favoriteCourt,
+        notes,
+        lastPlayDate: '',
+        relationship: 'casual'
+      });
 
-    Taro.showToast({ title: '添加成功', icon: 'success' });
-    setTimeout(() => Taro.navigateBack(), 500);
+      Taro.showToast({ title: '添加成功', icon: 'success' });
+      setTimeout(() => Taro.navigateBack(), 500);
+    } catch (e) {
+      console.error('[PlayerAdd] save error:', e);
+      Taro.showToast({ title: '保存失败，请重试', icon: 'none' });
+    }
   };
 
   return (
@@ -81,15 +86,11 @@ const PlayerAddPage: React.FC = () => {
             <Text
               className={gender === 'male' ? styles.optionActive : styles.optionBtn}
               onClick={() => setGender('male')}
-            >
-              {GENDER_MAP['male']}
-            </Text>
+            >{GENDER_MAP['male']}</Text>
             <Text
               className={gender === 'female' ? styles.optionActive : styles.optionBtn}
               onClick={() => setGender('female')}
-            >
-              {GENDER_MAP['female']}
-            </Text>
+            >{GENDER_MAP['female']}</Text>
           </View>
         </View>
 
@@ -114,9 +115,7 @@ const PlayerAddPage: React.FC = () => {
                 key={s}
                 className={playStyle === s ? styles.optionActive : styles.optionBtn}
                 onClick={() => setPlayStyle(s)}
-              >
-                {PLAY_STYLE_MAP[s]}
-              </Text>
+              >{PLAY_STYLE_MAP[s]}</Text>
             ))}
           </View>
         </View>
@@ -136,9 +135,7 @@ const PlayerAddPage: React.FC = () => {
                 key={c}
                 className={favoriteCourt === c ? styles.optionActive : styles.optionBtn}
                 onClick={() => setFavoriteCourt(c)}
-              >
-                {c}
-              </Text>
+              >{c}</Text>
             ))}
           </View>
         </View>
@@ -149,7 +146,7 @@ const PlayerAddPage: React.FC = () => {
         </View>
       </View>
 
-      <Text className={styles.submitBtn} onClick={handleSave}>保存球友</Text>
+      <Button className={styles.submitBtn} onClick={handleSave}>保存球友</Button>
     </View>
   );
 };

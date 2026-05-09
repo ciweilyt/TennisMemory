@@ -20,18 +20,29 @@ function pickByHash<T>(arr: T[], hash: number): T {
   return arr[hash % arr.length];
 }
 
-function drawRoundRect(ctx: any, x: number, y: number, w: number, h: number, r: number) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
+function base64Encode(str: string): string {
+  try {
+    if (typeof btoa === 'function') {
+      return btoa(unescape(encodeURIComponent(str)));
+    }
+  } catch {}
+  try {
+    const arr = [];
+    for (let i = 0; i < str.length; i++) {
+      arr.push(str.charCodeAt(i));
+    }
+    const uint8 = new Uint8Array(arr);
+    let binary = '';
+    for (let i = 0; i < uint8.length; i++) {
+      binary += String.fromCharCode(uint8[i]);
+    }
+    if (typeof btoa === 'function') {
+      return btoa(binary);
+    }
+    return encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(parseInt(p1, 16)));
+  } catch {
+    return encodeURIComponent(str);
+  }
 }
 
 export function generateAvatarSVG(
@@ -136,9 +147,8 @@ export function generateAvatarSVG(
 }
 
 export function svgToDataURI(svg: string): string {
-  return 'data:image/svg+xml;base64,' + typeof btoa !== 'undefined'
-    ? btoa(unescape(encodeURIComponent(svg)))
-    : Buffer.from(svg).toString('base64');
+  const encoded = base64Encode(svg);
+  return 'data:image/svg+xml;base64,' + encoded;
 }
 
 export function generateAvatarURI(
@@ -148,6 +158,11 @@ export function generateAvatarURI(
   ntrpLevel: string,
   isLefty: boolean
 ): string {
-  const svg = generateAvatarSVG(name, gender, playStyle, ntrpLevel, isLefty);
-  return svgToDataURI(svg);
+  try {
+    const svg = generateAvatarSVG(name, gender, playStyle, ntrpLevel, isLefty);
+    return svgToDataURI(svg);
+  } catch (e) {
+    console.error('[AvatarGenerator] generateAvatarURI error:', e);
+    return '';
+  }
 }
