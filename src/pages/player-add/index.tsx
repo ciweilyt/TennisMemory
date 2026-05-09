@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, Input, Textarea, Switch } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { usePlayerStore } from '@/store/usePlayerStore';
@@ -27,19 +27,7 @@ const PlayerAddPage: React.FC = () => {
     return generateAvatarURI(name.trim(), gender, playStyle, ntrpLevel, isLefty);
   }, [name, gender, playStyle, ntrpLevel, isLefty]);
 
-  const handleGenderSelect = useCallback((g: Gender) => {
-    setGender(g);
-  }, []);
-
-  const handleStyleSelect = useCallback((s: PlayStyle) => {
-    setPlayStyle(s);
-  }, []);
-
-  const handleCourtSelect = useCallback((c: string) => {
-    setFavoriteCourt(c);
-  }, []);
-
-  const handleSave = useCallback(() => {
+  const handleSave = () => {
     const trimmedName = name.trim();
     if (!trimmedName) {
       Taro.showToast({ title: '请输入球友姓名', icon: 'none' });
@@ -64,7 +52,7 @@ const PlayerAddPage: React.FC = () => {
 
     Taro.showToast({ title: '添加成功', icon: 'success' });
     setTimeout(() => Taro.navigateBack(), 500);
-  }, [name, gender, ntrpLevel, playStyle, isLefty, favoriteCourt, notes, players, addPlayer]);
+  };
 
   return (
     <View className={styles.container}>
@@ -73,7 +61,7 @@ const PlayerAddPage: React.FC = () => {
           {avatarURI ? (
             <image className={styles.avatarImg} src={avatarURI} mode="aspectFill" />
           ) : (
-            <Text style={{ fontSize: '48rpx', lineHeight: '160rpx', textAlign: 'center', display: 'block' }}>👤</Text>
+            <Text className={styles.avatarPlaceholder}>👤</Text>
           )}
         </View>
         <Text className={styles.avatarHint}>头像根据信息自动生成</Text>
@@ -90,16 +78,18 @@ const PlayerAddPage: React.FC = () => {
         <View className={styles.formGroup}>
           <Text className={styles.formLabel}>性别</Text>
           <View className={styles.optionRow}>
-            {genderOptions.map((g) => (
-              <View
-                key={g}
-                className={`${styles.optionBtn} ${gender === g ? styles.optionActive : ''}`}
-                hoverClass={styles.optionHover}
-                onClick={() => handleGenderSelect(g)}
-              >
-            <Text className={`${styles.optionText} ${gender === g ? styles.optionTextActive : ''}`}>{GENDER_MAP[g]}</Text>
-              </View>
-            ))}
+            <Text
+              className={gender === 'male' ? styles.optionActive : styles.optionBtn}
+              onClick={() => setGender('male')}
+            >
+              {GENDER_MAP['male']}
+            </Text>
+            <Text
+              className={gender === 'female' ? styles.optionActive : styles.optionBtn}
+              onClick={() => setGender('female')}
+            >
+              {GENDER_MAP['female']}
+            </Text>
           </View>
         </View>
 
@@ -120,14 +110,13 @@ const PlayerAddPage: React.FC = () => {
           <Text className={styles.formLabel}>打法风格</Text>
           <View className={styles.optionRow}>
             {styleOptions.map((s) => (
-              <View
+              <Text
                 key={s}
-                className={`${styles.optionBtn} ${playStyle === s ? styles.optionActive : ''}`}
-                hoverClass={styles.optionHover}
-                onClick={() => handleStyleSelect(s)}
+                className={playStyle === s ? styles.optionActive : styles.optionBtn}
+                onClick={() => setPlayStyle(s)}
               >
-            <Text className={`${styles.optionText} ${playStyle === s ? styles.optionTextActive : ''}`}>{PLAY_STYLE_MAP[s]}</Text>
-              </View>
+                {PLAY_STYLE_MAP[s]}
+              </Text>
             ))}
           </View>
         </View>
@@ -143,14 +132,13 @@ const PlayerAddPage: React.FC = () => {
           <Text className={styles.formLabel}>偏好场地</Text>
           <View className={styles.optionRow}>
             {courtOptions.map((c) => (
-              <View
+              <Text
                 key={c}
-                className={`${styles.optionBtn} ${favoriteCourt === c ? styles.optionActive : ''}`}
-                hoverClass={styles.optionHover}
-                onClick={() => handleCourtSelect(c)}
+                className={favoriteCourt === c ? styles.optionActive : styles.optionBtn}
+                onClick={() => setFavoriteCourt(c)}
               >
-            <Text className={`${styles.optionText} ${favoriteCourt === c ? styles.optionTextActive : ''}`}>{c}</Text>
-              </View>
+                {c}
+              </Text>
             ))}
           </View>
         </View>
@@ -161,7 +149,7 @@ const PlayerAddPage: React.FC = () => {
         </View>
       </View>
 
-      <View className={styles.submitBtn} hoverClass={styles.submitBtnHover} onClick={handleSave}>
+      <View className={styles.submitBtn} onClick={handleSave}>
         <Text className={styles.submitText}>保存球友</Text>
       </View>
     </View>

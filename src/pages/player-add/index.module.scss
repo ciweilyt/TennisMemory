@@ -22,11 +22,18 @@
   background: $color-bg-hover;
   margin-bottom: $spacing-sm;
   box-shadow: $shadow-card;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .avatarImg {
   width: 100%;
   height: 100%;
+}
+
+.avatarPlaceholder {
+  font-size: 48rpx;
 }
 
 .avatarHint {
@@ -89,32 +96,22 @@
 }
 
 .optionBtn {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
   padding: 16rpx 32rpx;
   border-radius: $radius-round;
   background: $color-bg-page;
   border: 2rpx solid transparent;
-  transition: all $transition-base;
-}
-
-.optionHover {
-  opacity: 0.7;
-  transform: scale(0.96);
 }
 
 .optionActive {
-  background: rgba($color-primary, 0.1);
-  border-color: $color-primary;
-}
-
-.optionText {
   font-size: $font-size-sm;
-  color: $color-text-secondary;
-  pointer-events: none;
-}
-
-.optionTextActive {
   color: $color-primary;
   font-weight: $font-weight-medium;
+  padding: 16rpx 32rpx;
+  border-radius: $radius-round;
+  background: rgba($color-primary, 0.1);
+  border: 2rpx solid $color-primary;
 }
 
 .switchRow {
@@ -148,17 +145,10 @@
   align-items: center;
   justify-content: center;
   margin-top: $spacing-xl;
-  transition: all $transition-base;
-}
-
-.submitBtnHover {
-  opacity: 0.85;
-  transform: scale(0.98);
 }
 
 .submitText {
   font-size: $font-size-lg;
   font-weight: $font-weight-medium;
   color: $color-text-white;
-  pointer-events: none;
 }
