@@ -1,9 +1,6 @@
 export type MatchType = 'singles' | 'doubles';
-
 export type CourtType = 'hard' | 'clay' | 'grass';
-
 export type MatchResult = 'win' | 'lose';
-
 export type WeatherType = 'sunny' | 'cloudy' | 'rainy' | 'windy' | 'hot';
 
 export interface SetScore {
@@ -19,7 +16,9 @@ export interface TennisMatch {
   court: string;
   courtType: CourtType;
   matchType: MatchType;
+  opponentId: string;
   opponent: string;
+  partnerId?: string;
   partner?: string;
   scores: SetScore[];
   result: MatchResult;

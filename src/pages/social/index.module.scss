@@ -7,6 +7,42 @@
   background: $color-bg-page;
 }
 
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: $spacing-lg;
+  margin-bottom: $spacing-md;
+}
+
+.addBtn {
+  padding: 8rpx 24rpx;
+  border-radius: $radius-round;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.addBtnText {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-white;
+}
+
+.emptyHint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl 0;
+}
+
+.emptyHintText {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+}
+
 .sectionTitle {
   font-size: $font-size-lg;
   font-weight: $font-weight-semibold;

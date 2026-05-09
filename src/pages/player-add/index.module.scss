@@ -1,0 +1,153 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  padding: $spacing-lg $page-padding;
+  background: $color-bg-page;
+}
+
+.avatarPreview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: $spacing-xl;
+}
+
+.avatarCircle {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: $radius-round;
+  overflow: hidden;
+  background: $color-bg-hover;
+  margin-bottom: $spacing-sm;
+  box-shadow: $shadow-card;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+}
+
+.avatarHint {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.formSection {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  margin-bottom: $spacing-lg;
+}
+
+.formTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-lg;
+}
+
+.formGroup {
+  margin-bottom: $spacing-lg;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.formLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-sm;
+  display: block;
+}
+
+.formInput {
+  width: 100%;
+  height: 80rpx;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  padding: 0 $spacing-lg;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  box-sizing: border-box;
+}
+
+.optionRow {
+  display: flex;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+}
+
+.optionBtn {
+  padding: 12rpx 32rpx;
+  border-radius: $radius-round;
+  background: $color-bg-page;
+  border: 2rpx solid transparent;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.optionActive {
+  background: rgba($color-primary, 0.1);
+  border-color: $color-primary;
+}
+
+.optionText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.optionTextActive {
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
+.switchRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.switchLabel {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+}
+
+.textArea {
+  width: 100%;
+  height: 160rpx;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  padding: $spacing-md $spacing-lg;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  box-sizing: border-box;
+}
+
+.submitBtn {
+  width: 100%;
+  height: $button-height-lg;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  border-radius: $radius-button;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: $spacing-xl;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.submitText {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-medium;
+  color: $color-text-white;
+}

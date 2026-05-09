@@ -6,7 +6,8 @@ export default defineAppConfig({
     'pages/social/index',
     'pages/mine/index',
     'pages/match-detail/index',
-    'pages/player-profile/index'
+    'pages/player-profile/index',
+    'pages/player-add/index'
   ],
   window: {
     backgroundTextStyle: 'light',

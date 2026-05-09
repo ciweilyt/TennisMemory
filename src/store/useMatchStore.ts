@@ -1,32 +1,44 @@
 import { create } from 'zustand';
 import { TennisMatch } from '@/types/match';
-import { mockMatches } from '@/data/matches';
+import { loadData, saveData, STORAGE_KEYS, autoBackup } from '@/utils/storage';
 
 interface MatchStore {
   matches: TennisMatch[];
+  loadMatches: () => void;
   addMatch: (match: TennisMatch) => void;
   deleteMatch: (id: string) => void;
-  getMatchesByOpponent: (opponent: string) => TennisMatch[];
+  getMatchesByOpponentId: (opponentId: string) => TennisMatch[];
   getRecentMatches: (count: number) => TennisMatch[];
 }
 
 export const useMatchStore = create<MatchStore>((set, get) => ({
-  matches: mockMatches,
+  matches: [],
+
+  loadMatches: () => {
+    const matches = loadData<TennisMatch[]>(STORAGE_KEYS.MATCHES, []);
+    set({ matches });
+    autoBackup();
+  },
 
   addMatch: (match) => {
-    set((state) => ({
-      matches: [match, ...state.matches]
-    }));
+    set((state) => {
+      const matches = [match, ...state.matches];
+      saveData(STORAGE_KEYS.MATCHES, matches);
+      return { matches };
+    });
+    autoBackup();
   },
 
   deleteMatch: (id) => {
-    set((state) => ({
-      matches: state.matches.filter((m) => m.id !== id)
-    }));
+    set((state) => {
+      const matches = state.matches.filter((m) => m.id !== id);
+      saveData(STORAGE_KEYS.MATCHES, matches);
+      return { matches };
+    });
   },
 
-  getMatchesByOpponent: (opponent) => {
-    return get().matches.filter((m) => m.opponent === opponent);
+  getMatchesByOpponentId: (opponentId) => {
+    return get().matches.filter((m) => m.opponentId === opponentId);
   },
 
   getRecentMatches: (count) => {

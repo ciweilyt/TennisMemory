@@ -1,17 +1,19 @@
-import React, { useEffect } from 'react';
-import { useDidShow, useDidHide } from '@tarojs/taro';
-// 全局样式
+import React from 'react';
+import { useMatchStore } from '@/store/useMatchStore';
+import { usePlayerStore } from '@/store/usePlayerStore';
+import { useUserStore } from '@/store/useUserStore';
 import './app.scss';
 
 function App(props) {
-  // 可以使用所有的 React Hooks
-  useEffect(() => {});
+  const loadMatches = useMatchStore((s) => s.loadMatches);
+  const loadPlayers = usePlayerStore((s) => s.loadPlayers);
+  const loadProfile = useUserStore((s) => s.loadProfile);
 
-  // 对应 onShow
-  useDidShow(() => {});
-
-  // 对应 onHide
-  useDidHide(() => {});
+  React.useEffect(() => {
+    loadMatches();
+    loadPlayers();
+    loadProfile();
+  }, []);
 
   return props.children;
 }

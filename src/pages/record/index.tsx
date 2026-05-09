@@ -5,6 +5,7 @@ import ChatBubble from '@/components/ChatBubble';
 import { parseMatchInput, generateAISummary } from '@/utils/aiParser';
 import { ParsedMatchInput } from '@/types/match';
 import { useMatchStore } from '@/store/useMatchStore';
+import { usePlayerStore } from '@/store/usePlayerStore';
 import styles from './index.module.scss';
 
 interface ChatMessage {
@@ -23,13 +24,16 @@ const RecordPage: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '0',
-      content: '嗨！告诉我你今天的比赛情况吧 🎾\n\n比如："昨晚和Kevin在基地打了两个小时，6:3输了，发球状态很差"',
+      content: '嗨！告诉我你今天的比赛情况吧 🎾\n\n比如："昨晚和Kevin在基地打了两个小时，6:3输了，发球状态很差"\n\n我会自动识别球友并更新TA的档案哦~',
       isUser: false,
       time: ''
     }
   ]);
   const [parsedResult, setParsedResult] = useState<ParsedMatchInput | null>(null);
   const addMatch = useMatchStore((state) => state.addMatch);
+  const findOrCreatePlayer = usePlayerStore((state) => state.findOrCreatePlayer);
+  const updatePlayerAfterMatch = usePlayerStore((state) => state.updatePlayerAfterMatch);
+  const recalculateRelationships = usePlayerStore((state) => state.recalculateRelationships);
 
   const getCurrentTime = () => {
     const now = new Date();
@@ -63,7 +67,7 @@ const RecordPage: React.FC = () => {
 
   const buildAIResponse = (parsed: ParsedMatchInput): string => {
     const parts: string[] = ['我帮你解析了比赛信息：\n'];
-    if (parsed.opponent) parts.push(`🏸 对手：${parsed.opponent}`);
+    if (parsed.opponent) parts.push(`🏸 对手：${parsed.opponent}（${parsed.opponent === '未知' ? '新球友' : '已有球友'}）`);
     if (parsed.partner) parts.push(`🤝 搭档：${parsed.partner}`);
     if (parsed.matchType) parts.push(`📋 类型：${matchTypeMap[parsed.matchType]}`);
     if (parsed.scores) parts.push(`📊 比分：${parsed.scores.map(s => `${s.mine}:${s.opponent}`).join(' ')}`);
@@ -73,12 +77,22 @@ const RecordPage: React.FC = () => {
     if (parsed.duration) parts.push(`⏱️ 时长：${Math.floor(parsed.duration / 60)}小时`);
     if (parsed.mood) parts.push(`😊 状态：${parsed.mood === 'good' ? '良好' : parsed.mood === 'bad' ? '不佳' : '一般'}`);
     if (parsed.techIssue) parts.push(`⚠️ 问题：${parsed.techIssue}`);
-    parts.push('\n确认无误后点击保存，或继续补充信息~');
+    parts.push('\n保存后将自动更新球友档案 ✨');
     return parts.join('\n');
   };
 
   const handleConfirm = () => {
     if (!parsedResult) return;
+
+    const opponentPlayer = parsedResult.opponent
+      ? findOrCreatePlayer(parsedResult.opponent)
+      : null;
+
+    const partnerPlayer = parsedResult.partner
+      ? findOrCreatePlayer(parsedResult.partner)
+      : null;
+
+    const eloChange = parsedResult.result === 'win' ? 12 : -8;
 
     const newMatch = {
       id: `m${Date.now()}`,
@@ -87,24 +101,35 @@ const RecordPage: React.FC = () => {
       court: parsedResult.court || '未知',
       courtType: parsedResult.courtType || 'hard' as const,
       matchType: parsedResult.matchType || 'singles' as const,
-      opponent: parsedResult.opponent || '未知',
-      partner: parsedResult.partner,
+      opponentId: opponentPlayer?.id || '',
+      opponent: opponentPlayer?.name || '未知',
+      partnerId: partnerPlayer?.id,
+      partner: partnerPlayer?.name,
       scores: parsedResult.scores || [{ mine: 0, opponent: 0 }],
       result: parsedResult.result || 'lose' as const,
       duration: parsedResult.duration || 60,
       weather: 'sunny' as const,
-      eloChange: parsedResult.result === 'win' ? 10 : -8,
+      eloChange,
       notes: parsedResult.notes || '',
       aiSummary: generateAISummary(parsedResult),
       createdAt: new Date().toISOString()
     };
 
     addMatch(newMatch);
+
+    if (opponentPlayer) {
+      updatePlayerAfterMatch(opponentPlayer.id, newMatch.result, eloChange);
+    }
+    if (partnerPlayer && newMatch.matchType === 'doubles') {
+      updatePlayerAfterMatch(partnerPlayer.id, newMatch.result, eloChange > 0 ? 8 : -5);
+    }
+
+    recalculateRelationships();
     setParsedResult(null);
 
     const confirmMsg: ChatMessage = {
       id: (Date.now() + 2).toString(),
-      content: '✅ 比赛已保存！\n\n' + newMatch.aiSummary,
+      content: `✅ 比赛已保存！\n\n${newMatch.aiSummary}\n\n${opponentPlayer ? `📋 ${opponentPlayer.name}的档案已更新` : ''}`,
       isUser: false,
       time: getCurrentTime()
     };
